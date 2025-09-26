@@ -1,2 +1,2 @@
 # IA_Generativa
-Proyectos de Ia Generativa
+Proyectos de IA Generativa
