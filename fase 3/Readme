@@ -1,8 +1,14 @@
 Este archivo esta compuesto por dos tipos de soluciones para la empresa Ecomarket.
-Una solucion abarca el 80% de las consultas que son repetitivas (estado del pedido, devoluciones, características del 
+
+Una solucion abarca el 80% de las consultas que son repetitivas (estado del pedido, devoluciones, características del
+
 producto).Este es el archivo Ecomarket1
-La otra solucion es para el 20% restante son más complejas, requiriendo un toque humano y empatía 
-(quejas, problemas técnicos, sugerencias). Actualmente, el tiempo de respuesta promedio 
+
+La otra solucion es para el 20% restante son más complejas, requiriendo un toque humano y empatía
+
+(quejas, problemas técnicos, sugerencias). Actualmente, el tiempo de respuesta promedio
+
 es de 24 horas, lo que está afectando la satisfacción del cliente. Este es el archivo Sistema_atención_quejas y consultas complejas con enfoque empático.ipynb
+
 Tambien esta el archivo de prompts como fueron redactados para luego implementar en las soluciones con los modelos.
 
