@@ -1,2 +1,4 @@
 # IA_Generativa
-Proyectos de IA Generativa
+Este repositorio esta creado por Claudia Martinez
+Enrique Manzano
+Mario Castellanos
