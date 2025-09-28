@@ -219,54 +219,13 @@ tener control de sus datos y pueden costear su infraestructura.
 
 Tabla 1 - Caracterización de los modelos
 
-  ------------------------------------------------------------------------
-  Modelo            Modelos en la     Modelos            Modelos ligeros
-                    nube gestionados  open-source        para triage (ej.
-                    (ej. OpenAI,      autoalojados (ej.  modelos pequeños
-                    Anthropic)        Llama, Mistral,    optimizados)
-                                      Falcon)            
-  ----------------- ----------------- ------------------ -----------------
-  \-\-\--           \-\-\--           \-\-\--            \-\-\--
-
-  Costo             Medio--alto por   Requieren una      Muy bajo por
-                    consulta, pero se mayor inversión    consulta, se usan
-                    paga solo por     inicial en         para clasificar y
-                    uso, lo que       infraestructura,   dirigir mensajes
-                    permite pruebas   pero el coste      (por ejemplo,
-                    rápidas y pasar a marginal después   distinguir entre
-                    producción        es mucho menor.    FAQ y casos que
-                    fácilmente.                          requieren
-                                                         humanos).
-
-  Escalabilidad     Excelente, con    Depende de la      Muy sencilla,
-                    autoscaling y     infraestructura;   casi trivial.
-                    acuerdos de nivel se necesitan       
-                    de servicio       equipos DevOps y   
-                    (SLAs).           GPUs para escalar. 
-
-  Integración       Muy sencilla      Flexible, pero     Muy sencilla,
-                    gracias a APIs,   conlleva más       casi trivial.
-                    webhooks y SDKs   esfuerzo de        
-                                      ingeniería.        
-
-  Calidad.          Muy alta, se      Muy buena si se    Suficiente para
-                    destacan en       ajustan con        clasificación de
-                    manejo de tono,   fine-tuning/       intenciones, pero
-                    empatía y         instrucciones,     no adecuados para
-                    seguridad,        varía según la     respuestas
-                    especialmente con versión usada.     complejas con
-                    fine-tuning o                        empatía.
-                    prompts de                           
-                    sistema.                             
-
-  Ideal para        Lanzamientos      Organizaciones que 
-                    rápidos que       priorizan control  
-                    requieren alta    de datos, ahorro a 
-                    calidad.          largo plazo y      
-                                      cumplimiento       
-                                      normativo          
-                                      estricto.          
-  ------------------------------------------------------------------------
+| Modelo | Modelos en la nube gestionados (ej. OpenAI, Anthropic) | Modelos open-source autoalojados (ej. Llama, Mistral, Falcon) | Modelos ligeros para triage (ej. modelos pequeños optimizados) |
+|----|----|----|----|
+| Costo | Medio–alto por consulta, pero se paga solo por uso, lo que permite pruebas rápidas y pasar a producción fácilmente. | Requieren una mayor inversión inicial en infraestructura, pero el coste marginal después es mucho menor. | Muy bajo por consulta, se usan para clasificar y dirigir mensajes (por ejemplo, distinguir entre FAQ y casos que requieren humanos). |
+| Escalabilidad | Excelente, con autoscaling y acuerdos de nivel de servicio (SLAs). | Depende de la infraestructura; se necesitan equipos DevOps y GPUs para escalar. | Muy sencilla, casi trivial. |
+| Integración | Muy sencilla gracias a APIs, webhooks y SDKs | Flexible, pero conlleva más esfuerzo de ingeniería. | Muy sencilla, casi trivial. |
+| Calidad. | Muy alta, se destacan en manejo de tono, empatía y seguridad, especialmente con fine-tuning o prompts de sistema. | Muy buena si se ajustan con fine-tuning/ instrucciones, varía según la versión usada. | Suficiente para clasificación de intenciones, pero no adecuados para respuestas complejas con empatía. |
+| Ideal para | Lanzamientos rápidos que requieren alta calidad. | Organizaciones que priorizan control de datos, ahorro a largo plazo y cumplimiento normativo estricto. |  |
 
 ## Fase 2: Evaluación de Fortalezas, Limitaciones y Riesgos Éticos
 
@@ -321,3 +280,4 @@ Tabla 2 - Matriz de riesgo y mitigaciones.
 | Impacto laboral | Reducción de tareas repetitivas para agentes humanos. | Medio (riesgo social y cultural). | Alta | Reentrenamiento de personal para casos complejos; creación de roles en supervisión de IA, análisis de feedback y experiencia de cliente. |
 | Dependencia tecnológica | Fallos en el servicio del proveedor de IA pueden interrumpir soporte. | Medio | Media | Estrategia multicloud o fallback a FAQs automatizadas internas; monitoreo de SLA del proveedor. |
 | Costo oculto por escalado | Uso excesivo de tokens puede incrementar la factura. | Bajo | Media | Optimizar prompts para reducir tokens; establecer límites y alertas de consumo. |
+
