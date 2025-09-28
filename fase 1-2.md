@@ -312,51 +312,12 @@ considerando el tipo de empresa de atención al cliente, ver tabla 2.
 
 Tabla 2 - Matriz de riesgo y mitigaciones.
 
-  -----------------------------------------------------------------------------------------------------
-  \*\*Riesgo      \*\*Descripción\*\*   \*\*Impacto\*\*   \*\*Probabilidad\*\*   \*\*Mitigación
-  ético                                                                          recomendada\*\*
-  técnico\*\*                                                                    
-  --------------- --------------------- ----------------- ---------------------- ----------------------
-  \-\-\--         \-\-\--               \-\-\--           \-\-\--                \-\-\--
-
-  Alucinaciones   El modelo puede       Alto (afecta      Media                  Integrar RAG
-                  inventar políticas,   confianza del                            (Retrieval-Augmented
-                  plazos o              cliente).                                Generation) con base
-                  características                                                de datos oficial;
-                  inexistentes.                                                  monitoreo de calidad;
-                                                                                 alertas para
-                                                                                 respuestas dudosas.
-
-  Sesgo en        Posibles diferencias  Medio             Media                  Auditoría periódica de
-  respuestas.     de trato según                                                 sesgos; fine-tuning
-                  idioma, género o                                               con datos inclusivos;
-                  contexto cultural.                                             guías de lenguaje
-                                                                                 neutral y empático.
-
-  Privacidad de   Riesgo de exponer     Muy alto (riesgo  Alta                   Anonimización antes de
-  datos           información sensible  legal y                                  enviar a la IA;
-                  (nombres,             reputacional).                           cumplimiento
-                  direcciones,                                                   GDPR/CCPA; logs
-                  correos).                                                      encriptados; acuerdos
-                                                                                 de procesamiento de
-                                                                                 datos con proveedores.
-
-  Impacto laboral Reducción de tareas   Medio (riesgo     Alta                   Reentrenamiento de
-                  repetitivas para      social y                                 personal para casos
-                  agentes humanos.      cultural).                               complejos; creación de
-                                                                                 roles en supervisión
-                                                                                 de IA, análisis de
-                                                                                 feedback y experiencia
-                                                                                 de cliente.
-
-  Dependencia     Fallos en el servicio Medio             Media                  Estrategia multicloud
-  tecnológica     del proveedor de IA                                            o fallback a FAQs
-                  pueden interrumpir                                             automatizadas
-                  soporte.                                                       internas; monitoreo de
-                                                                                 SLA del proveedor.
-
-  Costo oculto    Uso excesivo de       Bajo              Media                  Optimizar prompts para
-  por escalado    tokens puede                                                   reducir tokens;
-                  incrementar la                                                 establecer límites y
-                  factura.                                                       alertas de consumo.
-  -----------------------------------------------------------------------------------------------------
+  
+| **Riesgo ético técnico** | **Descripción** | **Impacto** | **Probabilidad** | **Mitigación recomendada** |
+|----|----|----|----|----|
+| Alucinaciones | El modelo puede inventar políticas, plazos o características inexistentes. | Alto (afecta confianza del cliente). | Media | Integrar RAG (Retrieval-Augmented Generation) con base de datos oficial; monitoreo de calidad; alertas para respuestas dudosas. |
+| Sesgo en respuestas. | Posibles diferencias de trato según idioma, género o contexto cultural. | Medio | Media | Auditoría periódica de sesgos; fine-tuning con datos inclusivos; guías de lenguaje neutral y empático. |
+| Privacidad de datos | Riesgo de exponer información sensible (nombres, direcciones, correos). | Muy alto (riesgo legal y reputacional). | Alta | Anonimización antes de enviar a la IA; cumplimiento GDPR/CCPA; logs encriptados; acuerdos de procesamiento de datos con proveedores. |
+| Impacto laboral | Reducción de tareas repetitivas para agentes humanos. | Medio (riesgo social y cultural). | Alta | Reentrenamiento de personal para casos complejos; creación de roles en supervisión de IA, análisis de feedback y experiencia de cliente. |
+| Dependencia tecnológica | Fallos en el servicio del proveedor de IA pueden interrumpir soporte. | Medio | Media | Estrategia multicloud o fallback a FAQs automatizadas internas; monitoreo de SLA del proveedor. |
+| Costo oculto por escalado | Uso excesivo de tokens puede incrementar la factura. | Bajo | Media | Optimizar prompts para reducir tokens; establecer límites y alertas de consumo. |
