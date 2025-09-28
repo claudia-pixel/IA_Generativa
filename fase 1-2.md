@@ -30,6 +30,8 @@ utilizamos para implementar las dos soluciones propuestas.
 
 ## Arquitectura
 
+![](./Imagen%201.png){size="2" width="300"}
+
 ## Arquitectura para el 80% de las consultas que son repetitivas (estado del pedido, devoluciones, características del producto)
 
 1.  **Fuente de datos estructurados**
@@ -280,4 +282,5 @@ Tabla 2 - Matriz de riesgo y mitigaciones.
 | Impacto laboral | Reducción de tareas repetitivas para agentes humanos. | Medio (riesgo social y cultural). | Alta | Reentrenamiento de personal para casos complejos; creación de roles en supervisión de IA, análisis de feedback y experiencia de cliente. |
 | Dependencia tecnológica | Fallos en el servicio del proveedor de IA pueden interrumpir soporte. | Medio | Media | Estrategia multicloud o fallback a FAQs automatizadas internas; monitoreo de SLA del proveedor. |
 | Costo oculto por escalado | Uso excesivo de tokens puede incrementar la factura. | Bajo | Media | Optimizar prompts para reducir tokens; establecer límites y alertas de consumo. |
+
 
