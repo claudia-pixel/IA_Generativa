@@ -39,3 +39,4 @@ Se integró el modelo llama3.2:3b mediante Ollama como LLM principal. El sistema
 
 **🔹 Pruebas del sistema:**   
 Se realizaron consultas típicas de atención al cliente, como disponibilidad de productos, precios, condiciones de devolución y contacto con soporte. El sistema respondió con precisión utilizando la base de conocimiento indexada.
+
