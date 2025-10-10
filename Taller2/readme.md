@@ -1,5 +1,9 @@
 Documentando el sistema RAG de atención al cliente para EcoMarket.
 
+Integrantes: Claudia Martinez
+Mario Castellanos
+Enrique Manzano
+
 **🛍️ Sistema RAG para Atención al Cliente – EcoMarket**
 
 Este proyecto implementa un sistema de generación aumentada por recuperación (RAG) para mejorar la atención al cliente de EcoMarket, una empresa de e-commerce sostenible. El sistema permite responder preguntas frecuentes y consultas sobre productos utilizando documentos internos como fuente confiable.
@@ -63,3 +67,4 @@ EcoMarket-RAG/
 ├── README.md \# Documentación del proyecto
 
 └── faiss_ecoshop/ \# Base vectorial local (FAISS)
+
