@@ -1,20 +1,24 @@
 Documentando el sistema RAG de atención al cliente para EcoMarket.
 
+
 Integrantes: Claudia Martinez
+
 Mario Castellanos
+
 Enrique Manzano
 
-**🛍️ Sistema RAG para Atención al Cliente – EcoMarket**
+
+**Sistema RAG para Atención al Cliente – EcoMarket**
 
 Este proyecto implementa un sistema de generación aumentada por recuperación (RAG) para mejorar la atención al cliente de EcoMarket, una empresa de e-commerce sostenible. El sistema permite responder preguntas frecuentes y consultas sobre productos utilizando documentos internos como fuente confiable.
 
-**📌 Objetivos del Proyecto**
+**Objetivos del Proyecto**
 
 -   Integrar un modelo de lenguaje con recuperación semántica para responder consultas reales de clientes.
 -   Utilizar documentos internos (PDF, Excel, JSON) como base de conocimiento.
 -   Evaluar la precisión, transparencia y ética del sistema en un entorno educativo.
 
-**🧩 Componentes del Sistema**
+**Componentes del Sistema**
 
 | **Componente** | **Herramienta elegida**     | **Justificación**                                         |
 |----------------|-----------------------------|-----------------------------------------------------------|
@@ -23,7 +27,7 @@ Este proyecto implementa un sistema de generación aumentada por recuperación (
 | LLM            | llama3.2:3b vía Ollama      | Ligero, rápido y adecuado para tareas de QA               |
 | Framework      | LangChain                   | Modular, flexible y orientado a sistemas RAG              |
 
-**📚 Documentos Utilizados**
+**Documentos Utilizados**
 
 -   **Política de Devoluciones** (PDF): Normativa oficial de reembolsos.
 -   **Inventario Sostenible** (Excel): Productos, stock y precios.
@@ -31,7 +35,7 @@ Este proyecto implementa un sistema de generación aumentada por recuperación (
 
 Todos los documentos fueron segmentados en chunks de 500 caracteres con solapamiento de 50, usando RecursiveCharacterTextSplitter.
 
-**⚙️ Flujo del Sistema**
+**Flujo del Sistema**
 
 1.  **Carga de documentos** con loaders especializados.
 2.  **Segmentación y vectorización** con embeddings Ollama.
@@ -39,20 +43,20 @@ Todos los documentos fueron segmentados en chunks de 500 caracteres con solapami
 4.  **Construcción del pipeline RAG** con RetrievalQA.
 5.  **Pruebas de consulta** simulando preguntas reales de clientes.
 
-**🧪 Ejemplos de Preguntas Respondidas**
+**Ejemplos de Preguntas Respondidas**
 
 -   ¿Cuál es la política de devoluciones de EcoMarket?
 -   ¿Qué productos no aplican para devoluciones?
 -   ¿Tienen disponibilidad del producto “Botella Reutilizable de Acero Inoxidable”?
 -   ¿Cuál es el precio actual del Cargador Solar Portátil?
 
-**🧠 Consideraciones Éticas**
+**Consideraciones Éticas**
 
 -   Se priorizó la transparencia en las fuentes utilizadas.
 -   El sistema no reemplaza la supervisión humana: se recomienda validación experta en casos sensibles.
 -   Se evita la generación de respuestas fuera del contexto documental indexado.
 
-**📦 Estructura del Repositorio**
+**Estructura del Repositorio**
 
 EcoMarket-RAG/
 
@@ -67,4 +71,5 @@ EcoMarket-RAG/
 ├── README.md \# Documentación del proyecto
 
 └── faiss_ecoshop/ \# Base vectorial local (FAISS)
+
 
