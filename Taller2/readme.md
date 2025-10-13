@@ -58,32 +58,33 @@ Todos los documentos fueron segmentados en chunks de 500 caracteres con solapami
 
 **Estructura del Repositorio**
 
+## Estructura del Repositorio
+```
 EcoMarket-RAG/
 |
 +-- README.md
 |   Documentación general del proyecto
 |
-+-- data/
++-- datos/
 |   Documentos fuente para la base de conocimiento
-|   |
 |   +-- Política de Devoluciones.pdf
 |   +-- Inventario_Sostenible.xlsx
 |   +-- faq.json (Preguntas frecuentes con respuestas)
 |   +-- faq_extra.json (Preguntas inferenciales sin respuestas)
 |   +-- faq_devoluciones.json (Preguntas sobre devoluciones)
 |
-+-- notebooks/
++-- cuadernos/
 |   +-- sistema_rag_ecomarket.ipynb
 |
 +-- faiss_ecoshop/
 |   +-- index.faiss
 |
-+-- evaluacion/
++-- evaluación/
 |   +-- preguntas_prueba.json
 |   +-- respuestas_esperadas.json
 |   +-- rubrica_evaluacion.md
 |
-+-- docs/
++-- documentos/
 |   +-- arquitectura_rag.md
 |   +-- estrategia_chunking.md
 |   +-- indexacion_vectorial.md
@@ -91,3 +92,7 @@ EcoMarket-RAG/
 |
 +-- config/
 |   +-- ollama_ngrok_config.md
+|
++-- LÉAME.md
+```
+
