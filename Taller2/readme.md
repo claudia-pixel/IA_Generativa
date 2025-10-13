@@ -60,16 +60,39 @@ Todos los documentos fueron segmentados en chunks de 500 caracteres con solapami
 
 EcoMarket-RAG/
 
+EcoMarket-RAG/
 │
+├── README.md                        # Documentación general del proyecto
+│
+├── 📁 data/                         # Documentos fuente para la base de conocimiento
+│   ├── Política de Devoluciones.pdf
+│   ├── Inventario_Sostenible.xlsx
+│   ├── faq.json                     # Preguntas frecuentes con respuestas
+│   ├── faq_extra.json               # Preguntas inferenciales sin respuestas
+│   └── faq_devoluciones.json        # Preguntas específicas sobre políticas de devolución
+│
+├── 📁 notebooks/                    #  Notebooks de desarrollo y pruebas
+│   └── sistema_rag_ecomarket.ipynb # Notebook principal con todo el flujo
+│
+├── 📁 faiss_ecoshop/                #  Base vectorial FAISS guardada localmente
+│   └── index.faiss
+│
+├── 📁 evaluacion/                   #  Recursos para validación del sistema
+│   ├── preguntas_prueba.json        # Set completo de preguntas de evaluación
+│   ├── respuestas_esperadas.json    # (opcional) Respuestas esperadas para rúbrica
+│   └── rubrica_evaluacion.md        # Criterios pedagógicos y éticos del taller
+│
+├── 📁 docs/                         # Documentación técnica y pedagógica
+│   ├── arquitectura_rag.md          # Justificación de componentes seleccionados
+│   ├── estrategia_chunking.md       # Detalles de segmentación y su impacto
+│   ├── indexacion_vectorial.md      # Proceso de embeddings y FAISS
+│   └── limitaciones_supuestos.md    # Reflexión crítica sobre el sistema
+│
+├── 📁 config/                       # Configuración remota y variables de entorno
+│   └── ollama_ngrok_config.md       # Instrucciones para conexión remota vía ngrok
+│
+└── LICENSE                          # Licencia del repositorio (opcional)
 
-├── data/ \# Documentos fuente (PDF, Excel, JSON)
 
-├── notebook/ \# Notebook con el código completo
-
-├── outputs/ \# Resultados de pruebas (opcional)
-
-├── README.md \# Documentación del proyecto
-
-└── faiss_ecoshop/ \# Base vectorial local (FAISS)
 
 
