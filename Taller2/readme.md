@@ -63,11 +63,11 @@ Todos los documentos fueron segmentados en chunks de 500 caracteres con solapami
 EcoMarket-RAG/
 │
 ├── README.md
-│   📘 Documentación general del proyecto
+│    Documentación general del proyecto
 │   (propósito, instalación, ejecución y resultados)
 │
 ├── data/
-│   📚 Documentos fuente utilizados para construir la base de conocimiento del sistema RAG
+│    Documentos fuente utilizados para construir la base de conocimiento del sistema RAG
 │   │
 │   ├── Política de Devoluciones.pdf
 │   ├── Inventario_Sostenible.xlsx
@@ -79,19 +79,19 @@ EcoMarket-RAG/
 │       → Preguntas específicas sobre políticas de devolución
 │
 ├── notebooks/
-│   📓 Notebooks de desarrollo y pruebas
+│    Notebooks de desarrollo y pruebas
 │   │
 │   └── sistema_rag_ecomarket.ipynb
 │       → Notebook principal con el flujo completo
 │       (carga, embeddings, RAG y pruebas)
 │
 ├── faiss_ecoshop/
-│   🧠 Base vectorial FAISS generada localmente
+│    Base vectorial FAISS generada localmente
 │   │
 │   └── index.faiss
 │
 ├── evaluacion/
-│   🧪 Recursos para validar el desempeño del sistema
+│    Recursos para validar el desempeño del sistema
 │   │
 │   ├── preguntas_prueba.json
 │   │   → Set completo de preguntas de evaluación
@@ -101,7 +101,7 @@ EcoMarket-RAG/
 │       → Criterios pedagógicos y éticos de evaluación
 │
 ├── docs/
-│   📄 Documentación técnica y pedagógica complementaria
+│    Documentación técnica y pedagógica complementaria
 │   │
 │   ├── arquitectura_rag.md
 │   │   → Descripción y justificación de los componentes del sistema
@@ -117,10 +117,10 @@ EcoMarket-RAG/
 │   │
 │   └── ollama_ngrok_config.md
 │       → Guía para exponer Ollama local vía ngrok
-│       y conectar desde Colab o n8n
-│
-└── LICENCIA
-    📜 Licencia del proyecto (opcional)
+
+
+    
 ```
+
 
 
