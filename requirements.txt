@@ -1,0 +1,32 @@
+# Core LangChain packages
+langchain-chroma==0.2.6
+langchain-openai
+langchain-core
+langchain-text-splitters
+langchain-community
+
+# Vector database
+chromadb
+
+# Document processing
+pypdf
+docx2txt
+unstructured
+beautifulsoup4
+lxml
+markdown
+
+# Web framework
+streamlit
+
+# Environment management
+python-environ
+
+# Database
+sqlite3
+
+# HTTP requests
+requests
+
+# Additional utilities
+nltk
