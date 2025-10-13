@@ -61,38 +61,66 @@ Todos los documentos fueron segmentados en chunks de 500 caracteres con solapami
 ## Estructura del Repositorio
 ```
 EcoMarket-RAG/
-|
-+-- README.md
-|   Documentación general del proyecto
-|
-+-- datos/
-|   Documentos fuente para la base de conocimiento
-|   +-- Política de Devoluciones.pdf
-|   +-- Inventario_Sostenible.xlsx
-|   +-- faq.json (Preguntas frecuentes con respuestas)
-|   +-- faq_extra.json (Preguntas inferenciales sin respuestas)
-|   +-- faq_devoluciones.json (Preguntas sobre devoluciones)
-|
-+-- cuadernos/
-|   +-- sistema_rag_ecomarket.ipynb
-|
-+-- faiss_ecoshop/
-|   +-- index.faiss
-|
-+-- evaluación/
-|   +-- preguntas_prueba.json
-|   +-- respuestas_esperadas.json
-|   +-- rubrica_evaluacion.md
-|
-+-- documentos/
-|   +-- arquitectura_rag.md
-|   +-- estrategia_chunking.md
-|   +-- indexacion_vectorial.md
-|   +-- limitaciones_supuestos.md
-|
-+-- config/
-|   +-- ollama_ngrok_config.md
-|
-+-- LÉAME.md
+│
+├── README.md
+│   📘 Documentación general del proyecto
+│   (propósito, instalación, ejecución y resultados)
+│
+├── data/
+│   📚 Documentos fuente utilizados para construir la base de conocimiento del sistema RAG
+│   │
+│   ├── Política de Devoluciones.pdf
+│   ├── Inventario_Sostenible.xlsx
+│   ├── faq.json
+│   │   → Preguntas frecuentes con respuestas
+│   ├── faq_extra.json
+│   │   → Preguntas inferenciales sin respuestas (para pruebas de razonamiento)
+│   └── faq_devoluciones.json
+│       → Preguntas específicas sobre políticas de devolución
+│
+├── notebooks/
+│   📓 Notebooks de desarrollo y pruebas
+│   │
+│   └── sistema_rag_ecomarket.ipynb
+│       → Notebook principal con el flujo completo
+│       (carga, embeddings, RAG y pruebas)
+│
+├── faiss_ecoshop/
+│   🧠 Base vectorial FAISS generada localmente
+│   │
+│   └── index.faiss
+│
+├── evaluacion/
+│   🧪 Recursos para validar el desempeño del sistema
+│   │
+│   ├── preguntas_prueba.json
+│   │   → Set completo de preguntas de evaluación
+│   ├── respuestas_esperadas.json
+│   │   → (Opcional) Respuestas esperadas para evaluación automatizada
+│   └── rubrica_evaluacion.md
+│       → Criterios pedagógicos y éticos de evaluación
+│
+├── docs/
+│   📄 Documentación técnica y pedagógica complementaria
+│   │
+│   ├── arquitectura_rag.md
+│   │   → Descripción y justificación de los componentes del sistema
+│   ├── estrategia_chunking.md
+│   │   → Análisis de segmentación de texto y su impacto
+│   ├── indexacion_vectorial.md
+│   │   → Explicación del proceso de embeddings y FAISS
+│   └── limitaciones_supuestos.md
+│       → Reflexión crítica sobre las limitaciones del sistema
+│
+├── config/
+│   🔧 Archivos de configuración y conexión remota
+│   │
+│   └── ollama_ngrok_config.md
+│       → Guía para exponer Ollama local vía ngrok
+│       y conectar desde Colab o n8n
+│
+└── LICENCIA
+    📜 Licencia del proyecto (opcional)
 ```
+
 
