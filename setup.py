@@ -27,7 +27,18 @@ def setup():
     # Initialize database
     print("🗄️  Inicializando base de datos...")
     init_database()
-    create_admin_table()
+    
+    # Small delay to ensure database is ready
+    import time
+    time.sleep(0.5)
+    
+    # Create admin table with retry logic
+    print("👤 Creando tablas de administración...")
+    if create_admin_table():
+        print("✅ Tablas de administración creadas")
+    else:
+        print("⚠️  Error creando tablas de administración")
+    
     print("✅ Base de datos inicializada")
     print()
     
@@ -75,7 +86,11 @@ def setup():
             password = default_password
             email = default_email
     
+    # Small delay before creating user
+    time.sleep(0.5)
+    
     # Create admin user
+    print("👤 Creando usuario administrador...")
     if create_admin_user(username, password, email):
         print()
         print("✅ Usuario administrador creado exitosamente!")
@@ -91,7 +106,7 @@ def setup():
         print("⚠️  IMPORTANTE: Guarda estas credenciales en un lugar seguro")
         print()
     else:
-        print("❌ Error: El usuario ya existe")
+        print("ℹ️  El usuario ya existe o hubo un error en la creación")
         print()
     
     # Initialize sample documents collection

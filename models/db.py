@@ -1,8 +1,15 @@
 import sqlite3
+import time
 
 def connect_db():
-    """Connect to SQLite database"""
-    return sqlite3.connect("doc_sage.sqlite")
+    """Connect to SQLite database with timeout and WAL mode"""
+    conn = sqlite3.connect("doc_sage.sqlite", timeout=30.0)
+    # Enable WAL mode for better concurrency
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA cache_size=1000")
+    conn.execute("PRAGMA temp_store=MEMORY")
+    return conn
 
 def init_database():
     """Initialize all database tables"""
@@ -173,14 +180,44 @@ def delete_source(source_id):
 
 # CRUD Operations for 'messages' table
 def create_message(chat_id, sender, content):
-    conn = connect_db()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO messages (chat_id, sender, content) VALUES (?, ?, ?)",
-        (chat_id, sender, content),
-    )
-    conn.commit()
-    conn.close()
+    conn = None
+    max_retries = 3
+    retry_count = 0
+    
+    while retry_count < max_retries:
+        try:
+            conn = connect_db()
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO messages (chat_id, sender, content) VALUES (?, ?, ?)",
+                (chat_id, sender, content),
+            )
+            conn.commit()
+            return True
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e) and retry_count < max_retries - 1:
+                retry_count += 1
+                print(f"Database locked, retrying... ({retry_count}/{max_retries})")
+                if conn:
+                    conn.close()
+                time.sleep(0.1 * retry_count)  # Exponential backoff
+                continue
+            else:
+                print(f"Error creating message: {e}")
+                if conn:
+                    conn.rollback()
+                return False
+        except Exception as e:
+            print(f"Error creating message: {e}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn:
+                conn.close()
+        break
+    
+    return False
 
 def get_messages(chat_id):
     conn = connect_db()

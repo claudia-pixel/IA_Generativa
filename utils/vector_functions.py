@@ -1,5 +1,6 @@
 import os
 import glob
+import pandas as pd
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.documents import Document
@@ -14,8 +15,8 @@ from langchain_community.document_loaders import (
     Docx2txtLoader,
     UnstructuredHTMLLoader,
     UnstructuredMarkdownLoader,
-    UnstructuredExcelLoader,
 )
+from langchain_community.vectorstores.utils import filter_complex_metadata
 import environ
 
 env = environ.Env()
@@ -31,7 +32,60 @@ embeddings = OpenAIEmbeddings(
     api_key=env("OPENAI_API_KEY"),
 )
 
-text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+text_splitter = CharacterTextSplitter(
+    chunk_size=500,  # Fragmentos más pequeños
+    chunk_overlap=50,  # Más superposición
+    length_function=len,
+    separator="\n"
+)
+
+
+def load_excel_with_pandas(file_path: str) -> list[Document]:
+    """
+    Load Excel file using pandas for better reliability.
+    
+    Args:
+        file_path (str): Path to the Excel file.
+    
+    Returns:
+        list[Document]: A list of Document objects.
+    """
+    try:
+        # Read Excel file
+        df = pd.read_excel(file_path)
+        
+        # Convert DataFrame to text
+        text_content = ""
+        
+        # Add column headers
+        if not df.empty:
+            text_content += "Columnas: " + ", ".join(df.columns.tolist()) + "\n\n"
+            
+            # Add each row as text
+            for index, row in df.iterrows():
+                row_text = f"Fila {index + 1}: "
+                for col in df.columns:
+                    if pd.notna(row[col]):  # Only add non-null values
+                        row_text += f"{col}: {row[col]}, "
+                text_content += row_text.rstrip(", ") + "\n"
+        
+        # Create document
+        document = Document(
+            page_content=text_content,
+            metadata={
+                "source": file_path,
+                "file_type": "excel",
+                "source_type": "inventory",
+                "total_rows": str(len(df)),
+                "columns": ", ".join(df.columns.tolist())  # Convert list to string
+            }
+        )
+        
+        return [document]
+        
+    except Exception as e:
+        print(f"Error loading Excel file with pandas: {e}")
+        return []
 
 
 def load_document(file_path: str) -> list[Document]:
@@ -52,22 +106,27 @@ def load_document(file_path: str) -> list[Document]:
 
     if file_extension == ".txt":
         loader = TextLoader(file_path)
+        return loader.load()
     elif file_extension == ".pdf":
         loader = PyPDFLoader(file_path)
+        return loader.load()
     elif file_extension == ".docx":
         loader = Docx2txtLoader(file_path)
+        return loader.load()
     elif file_extension == ".csv":
         loader = CSVLoader(file_path)
+        return loader.load()
     elif file_extension == ".html":
         loader = UnstructuredHTMLLoader(file_path)
+        return loader.load()
     elif file_extension == ".md":
         loader = UnstructuredMarkdownLoader(file_path)
+        return loader.load()
     elif file_extension in [".xlsx", ".xls"]:
-        loader = UnstructuredExcelLoader(file_path)
+        # Use pandas for Excel files (more reliable)
+        return load_excel_with_pandas(file_path)
     else:
         raise ValueError(f"Unsupported file type: {file_extension}")
-
-    return loader.load()
 
 
 def create_collection(collection_name, documents):
@@ -86,6 +145,10 @@ def create_collection(collection_name, documents):
     """
     # Split the documents into smaller text chunks
     texts = text_splitter.split_documents(documents)
+    
+    # Filter complex metadata
+    texts = filter_complex_metadata(texts)
+    
     persist_directory = "./static/persist"
 
     # Create a new Chroma collection from the text chunks
@@ -126,7 +189,7 @@ def load_collection(collection_name):
     return vectordb
 
 
-def load_retriever(collection_name, score_threshold: float = 0.6):
+def load_retriever(collection_name, score_threshold: float = 0.3):
     """
     Create a retriever from a Chroma collection with a similarity score threshold.
 
@@ -147,8 +210,8 @@ def load_retriever(collection_name, score_threshold: float = 0.6):
     vectordb = load_collection(collection_name)
     # Create a retriever from the collection with specified search parameters
     retriever = vectordb.as_retriever(
-        search_type="similarity_score_threshold",
-        search_kwargs={"score_threshold": score_threshold},
+        search_type="similarity",
+        search_kwargs={"k": 5},
     )
     return retriever
 
@@ -200,6 +263,9 @@ def add_documents_to_collection(vectordb, documents):
 
     # Split the documents into smaller text chunks
     texts = text_splitter.split_documents(documents)
+    
+    # Filter complex metadata
+    texts = filter_complex_metadata(texts)
 
     # Add the text chunks to the vector database
     vectordb.add_documents(texts)
@@ -228,9 +294,14 @@ def load_sample_documents():
     
     print(f"📁 Loading sample documents from {sample_dir}...")
     
+    # List all files in the directory for debugging
+    all_files = os.listdir(sample_dir)
+    print(f"📋 Files found in directory: {all_files}")
+    
     for ext in supported_extensions:
         pattern = os.path.join(sample_dir, f"*{ext}")
         files = glob.glob(pattern)
+        print(f"🔍 Looking for {ext} files: found {len(files)} files")
         
         for file_path in files:
             try:
@@ -260,6 +331,31 @@ def load_sample_documents():
     return all_documents, collection_name
 
 
+def is_sample_collection_initialized():
+    """
+    Check if the sample collection is already initialized.
+    
+    Returns:
+    bool: True if collection exists and has documents, False otherwise.
+    """
+    try:
+        persist_directory = "./static/persist"
+        collection_path = os.path.join(persist_directory, "chroma.sqlite3")
+        
+        if not os.path.exists(collection_path):
+            return False
+        
+        # Try to load the collection
+        vectordb = load_collection("sample_documents")
+        
+        # Check if collection has documents
+        collection_count = vectordb._collection.count()
+        return collection_count > 0
+        
+    except Exception:
+        return False
+
+
 def initialize_sample_collection():
     """
     Initialize the sample documents collection.
@@ -269,7 +365,18 @@ def initialize_sample_collection():
     bool: True if successful, False otherwise.
     """
     try:
+        # Check if already initialized
+        if is_sample_collection_initialized():
+            print("✅ Sample collection already initialized")
+            return True
+        
         print("🔄 Starting sample collection initialization...")
+        
+        # Check if sample documents directory exists
+        sample_dir = "./static/sample_documents"
+        if not os.path.exists(sample_dir):
+            print(f"❌ Sample documents directory not found: {sample_dir}")
+            return False
         
         # Load sample documents
         documents, collection_name = load_sample_documents()
@@ -280,39 +387,17 @@ def initialize_sample_collection():
         
         print(f"📊 Loaded {len(documents)} documents from sample files")
         
-        # Always create/update the collection
+        # Create/update the collection
         persist_directory = "./static/persist"
         os.makedirs(persist_directory, exist_ok=True)
         
-        # Check if collection already exists
-        collection_path = os.path.join(persist_directory, "chroma.sqlite3")
-        
-        if os.path.exists(collection_path):
-            try:
-                # Try to load existing collection
-                existing_collection = load_collection(collection_name)
-                print(f"📚 Found existing collection: {collection_name}")
-                
-                # Add new documents to existing collection
-                add_documents_to_collection(existing_collection, documents)
-                print(f"✅ Added {len(documents)} documents to existing collection")
-                
-            except Exception as e:
-                print(f"📝 Error loading existing collection, creating new one: {e}")
-                # Create new collection
-                vectordb = create_collection(collection_name, documents)
-                if not vectordb:
-                    print("❌ Failed to create sample documents collection")
-                    return False
-                print(f"✅ Sample documents collection created successfully with {len(documents)} documents")
-        else:
-            # Create new collection
-            print(f"📝 Creating new collection: {collection_name}")
-            vectordb = create_collection(collection_name, documents)
-            if not vectordb:
-                print("❌ Failed to create sample documents collection")
-                return False
-            print(f"✅ Sample documents collection created successfully with {len(documents)} documents")
+        # Create new collection
+        print(f"📝 Creating collection: {collection_name}")
+        vectordb = create_collection(collection_name, documents)
+        if not vectordb:
+            print("❌ Failed to create sample documents collection")
+            return False
+        print(f"✅ Sample documents collection created successfully with {len(documents)} documents")
         
         # Register documents in database
         register_sample_documents_in_db()
@@ -391,7 +476,7 @@ def register_sample_documents_in_db():
         print(f"❌ Error registering sample documents in DB: {str(e)}")
 
 
-def get_combined_retriever(score_threshold: float = 0.6):
+def get_combined_retriever(score_threshold: float = 0.3):
     """
     Get a retriever that combines both sample_documents and ecomarket_kb collections.
     

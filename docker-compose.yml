@@ -15,6 +15,7 @@ services:
       - ./data:/app/data
       - ./static/persist:/app/static/persist
       - ./static/temp_files:/app/static/temp_files
+      - ./static/sample_documents:/app/static/sample_documents
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]

@@ -34,7 +34,7 @@ def render_theme_selector():
     
     with col3:
         selected_theme_name = st.selectbox(
-            "",
+            "Seleccionar tema",
             options=list(theme_options.keys()),
             index=list(theme_options.keys()).index(get_theme(st.session_state.selected_theme)["name"]),
             key="theme_selector",
@@ -92,7 +92,7 @@ def render_header_with_theme_selector():
     
     with col3:
         selected_theme_name = st.selectbox(
-            "",
+            "Seleccionar tema",
             options=list(theme_options.keys()),
             index=list(theme_options.keys()).index(get_theme(st.session_state.selected_theme)["name"]),
             key="theme_selector",

@@ -13,20 +13,9 @@ st.set_page_config(
 )
 
 if __name__ == "__main__":
-    # Ejecutar setup completo
-    from setup import setup
-    setup()
-    
-    # Inicializar la base de datos
+    # La inicialización se hace en init_app.py antes de ejecutar la aplicación
+    # Solo inicializar la base de datos si es necesario
     init_database()
-    
-    # Inicializar documentos de muestra
-    with st.spinner("🔄 Cargando documentos de muestra..."):
-        success = initialize_sample_collection()
-        if success:
-            st.success("✅ Documentos de muestra cargados correctamente")
-        else:
-            st.warning("⚠️ Algunos documentos de muestra no se pudieron cargar")
     
     # Aplicar tema global
     apply_global_theme()

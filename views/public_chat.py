@@ -92,8 +92,6 @@ def public_chat():
         # Display AI response with streaming
         with st.chat_message("assistant", avatar="🌿"):
             st.write_stream(stream_response(response))
-        
-        st.rerun()
     
     # Sidebar with info
     with st.sidebar:
