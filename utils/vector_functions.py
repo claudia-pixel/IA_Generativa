@@ -32,9 +32,46 @@ embeddings = OpenAIEmbeddings(
     api_key=env("OPENAI_API_KEY"),
 )
 
+def create_optimal_splitter(file_type: str, content: str = ""):
+    """
+    Crear splitter optimizado basado en el tipo de contenido.
+    
+    Args:
+        file_type (str): Tipo de archivo (excel, txt, pdf, etc.)
+        content (str): Contenido del documento para análisis
+    
+    Returns:
+        CharacterTextSplitter: Splitter optimizado para el tipo de contenido
+    """
+    # Detectar si es contenido estructurado (Excel, CSV, etc.)
+    is_structured = (
+        file_type in ["excel", "csv"] or 
+        "Fila" in content or 
+        "Columnas" in content or
+        "Nombre del Producto" in content
+    )
+    
+    if is_structured:
+        # Para datos estructurados: fragmentos más pequeños
+        return CharacterTextSplitter(
+            chunk_size=300,     # Más pequeño para datos estructurados
+            chunk_overlap=30,   # Menos superposición
+            length_function=len,
+            separator="\n"
+        )
+    else:
+        # Para texto narrativo: fragmentos más grandes
+        return CharacterTextSplitter(
+            chunk_size=500,     # Más grande para texto narrativo
+            chunk_overlap=50,   # Más superposición
+            length_function=len,
+            separator="\n"
+        )
+
+# Splitter por defecto (para compatibilidad)
 text_splitter = CharacterTextSplitter(
-    chunk_size=500,  # Fragmentos más pequeños
-    chunk_overlap=50,  # Más superposición
+    chunk_size=500,
+    chunk_overlap=50,
     length_function=len,
     separator="\n"
 )
@@ -131,7 +168,7 @@ def load_document(file_path: str) -> list[Document]:
 
 def create_collection(collection_name, documents):
     """
-    Create a new Chroma collection from the given documents.
+    Create a new Chroma collection from the given documents using adaptive chunking.
 
     Args:
     collection_name (str): The name of the collection to create.
@@ -140,14 +177,28 @@ def create_collection(collection_name, documents):
     Returns:
     None
 
-    This function splits the documents into texts, creates a new Chroma collection,
-    and persists it to disk.
+    This function splits the documents into texts using adaptive chunking strategy,
+    creates a new Chroma collection, and persists it to disk.
     """
-    # Split the documents into smaller text chunks
-    texts = text_splitter.split_documents(documents)
+    # Use adaptive chunking strategy
+    all_texts = []
+    
+    for doc in documents:
+        # Determine file type from metadata or content
+        file_type = doc.metadata.get('file_type', 'unknown')
+        content = doc.page_content
+        
+        # Create optimal splitter for this document
+        optimal_splitter = create_optimal_splitter(file_type, content)
+        
+        # Split this specific document
+        doc_texts = optimal_splitter.split_documents([doc])
+        all_texts.extend(doc_texts)
+        
+        print(f"📄 Split {doc.metadata.get('source', 'unknown')} into {len(doc_texts)} chunks (type: {file_type})")
     
     # Filter complex metadata
-    texts = filter_complex_metadata(texts)
+    texts = filter_complex_metadata(all_texts)
     
     persist_directory = "./static/persist"
 

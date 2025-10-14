@@ -74,7 +74,7 @@ def public_chat():
                 
                 Por favor, contacta directamente con nuestro equipo de soporte:
                 - 📧 Email: soporte@ecomarket.com
-                - 📞 Teléfono: +57 123 456 7890
+                - 📞 Teléfono: +57 324 456 4450
                 - ⏰ Horario: Lunes a Viernes 9:00 AM - 6:00 PM
                 """
         except Exception as e:
@@ -83,7 +83,7 @@ def public_chat():
             
             Por favor, intenta nuevamente o contacta a nuestro equipo:
             - 📧 soporte@ecomarket.com
-            - 📞 +57 123 456 7890
+            - 📞 +57 324 456 4450
             """
         
         # Save AI response
