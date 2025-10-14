@@ -1,8 +1,82 @@
 import sqlite3
 
-# Connect to SQLite database
 def connect_db():
-    return sqlite3.connect("db/doc_sage.sqlite")
+    """Connect to SQLite database"""
+    return sqlite3.connect("doc_sage.sqlite")
+
+def init_database():
+    """Initialize all database tables"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    # Create 'chat' table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS chat (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Create 'sources' table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sources (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            source_text TEXT,
+            type TEXT DEFAULT "document",
+            chat_id INTEGER,
+            FOREIGN KEY (chat_id) REFERENCES chat(id)
+        )
+    """)
+    
+    # Create 'messages' table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chat_id INTEGER NOT NULL,
+            sender TEXT NOT NULL,
+            content TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(chat_id) REFERENCES chat(id)
+        );
+    """)
+    
+    # Create admin_users table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin_users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            email TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
+    # Create sessions table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            session_token TEXT UNIQUE NOT NULL,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES admin_users(id)
+        )
+    """)
+    
+    # Initialize default chats if they don't exist
+    cursor.execute("SELECT COUNT(*) FROM chat")
+    if cursor.fetchone()[0] == 0:
+        # Create system chat (ID=1) for knowledge base
+        cursor.execute("INSERT INTO chat (id, title) VALUES (1, 'Sistema - Base de Conocimiento')")
+        # Create public chat (ID=2) for customer queries
+        cursor.execute("INSERT INTO chat (id, title) VALUES (2, 'Chat Público - Clientes')")
+    
+    conn.commit()
+    conn.close()
+    print("Database initialized successfully.")
 
 # CRUD Operations for 'chat' table
 def create_chat(title):
@@ -14,7 +88,6 @@ def create_chat(title):
     conn.close()
     return chat_id
 
-
 def list_chats():
     conn = connect_db()
     cursor = conn.cursor()
@@ -23,7 +96,6 @@ def list_chats():
     conn.close()
     return chats
 
-
 def read_chat(chat_id):
     conn = connect_db()
     cursor = conn.cursor()
@@ -31,7 +103,6 @@ def read_chat(chat_id):
     result = cursor.fetchone()
     conn.close()
     return result
-
 
 def update_chat(chat_id, new_title):
     conn = connect_db()
@@ -43,7 +114,6 @@ def update_chat(chat_id, new_title):
     conn.commit()
     conn.close()
 
-
 def delete_chat(chat_id):
     conn = connect_db()
     cursor = conn.cursor()
@@ -51,7 +121,7 @@ def delete_chat(chat_id):
     conn.commit()
     conn.close()
 
-
+# CRUD Operations for 'sources' table
 def create_source(name, source_text, chat_id, source_type="document"):
     conn = connect_db()
     cursor = conn.cursor()
@@ -61,7 +131,6 @@ def create_source(name, source_text, chat_id, source_type="document"):
     )
     conn.commit()
     conn.close()
-
 
 def read_source(source_id):
     conn = connect_db()
@@ -81,7 +150,6 @@ def update_source(source_id, new_name, new_source_text):
     conn.commit()
     conn.close()
 
-
 def list_sources(chat_id, source_type=None):
     conn = connect_db()
     cursor = conn.cursor()
@@ -96,14 +164,12 @@ def list_sources(chat_id, source_type=None):
     conn.close()
     return sources
 
-
 def delete_source(source_id):
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM sources WHERE id = ?", (source_id,))
     conn.commit()
     conn.close()
-
 
 # CRUD Operations for 'messages' table
 def create_message(chat_id, sender, content):
@@ -116,18 +182,16 @@ def create_message(chat_id, sender, content):
     conn.commit()
     conn.close()
 
-
 def get_messages(chat_id):
     conn = connect_db()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, chat_id, sender, content, timestamp FROM messages WHERE chat_id = ? ORDER BY timestamp ASC",
+        "SELECT sender, content FROM messages WHERE chat_id = ? ORDER BY timestamp ASC",
         (chat_id,),
     )
     messages = cursor.fetchall()
     conn.close()
     return messages
-
 
 def delete_messages(chat_id):
     conn = connect_db()
@@ -135,3 +199,6 @@ def delete_messages(chat_id):
     cursor.execute("DELETE FROM messages WHERE chat_id = ?", (chat_id,))
     conn.commit()
     conn.close()
+
+if __name__ == "__main__":
+    init_database()
