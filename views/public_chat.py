@@ -1,8 +1,9 @@
 import streamlit as st
 import time
 import os
-from db import create_message, get_messages
-from vector_functions import load_retriever, generate_answer_from_context
+from models.db import create_message, get_messages
+from utils.vector_functions import load_retriever, generate_answer_from_context, get_combined_retriever
+from utils.theme_utils import apply_theme_with_header
 
 def stream_response(response):
     """Stream response word by word"""
@@ -13,36 +14,13 @@ def stream_response(response):
 def public_chat():
     """Public chat interface for customers"""
     
-    # Custom CSS for branding
-    st.markdown("""
-        <style>
-        .main-header {
-            text-align: center;
-            color: #2E7D32;
-            padding: 20px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            font-size: 18px;
-            margin-bottom: 30px;
-        }
-        .welcome-box {
-            background-color: #E8F5E9;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    # Header
-    st.markdown("<h1 class='main-header'>🌿 EcoMarket - Asistente Virtual</h1>", unsafe_allow_html=True)
+    # Subtítulo (el header principal se maneja en theme_utils)
     st.markdown("<p class='subtitle'>Tu compañero para productos sostenibles</p>", unsafe_allow_html=True)
     
-    # Welcome message
-    if "messages_loaded" not in st.session_state:
-        st.session_state.messages_loaded = True
+    # Welcome message - mostrar siempre si no hay mensajes en el chat
+    messages = get_messages(2)  # CHAT_ID = 2 para chat público
+    
+    if not messages:
         with st.container():
             st.markdown("""
                 <div class='welcome-box'>
@@ -61,9 +39,6 @@ def public_chat():
     
     # Chat history (using chat_id = 2 for public chat)
     CHAT_ID = 2
-    
-    # Load messages
-    messages = get_messages(CHAT_ID)
     
     # Display chat history
     if messages:
@@ -86,13 +61,10 @@ def public_chat():
         with st.chat_message("user"):
             st.markdown(prompt)
         
-        # Load retriever
-        collection_name = "ecomarket_kb"
-        
         try:
             # Verificar si existe la base de datos ChromaDB
-            if os.path.exists("./persist/chroma.sqlite3"):
-                retriever = load_retriever(collection_name=collection_name)
+            if os.path.exists("./static/persist/chroma.sqlite3"):
+                retriever = get_combined_retriever()
                 
                 # Generate response
                 response = generate_answer_from_context(retriever, prompt)

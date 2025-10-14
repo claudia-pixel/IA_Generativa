@@ -4,8 +4,9 @@ Ejecutar este script antes de iniciar la aplicación por primera vez
 """
 
 import os
-from db import init_database
-from auth import create_admin_table, create_admin_user
+from models.db import init_database
+from controllers.auth import create_admin_table, create_admin_user
+from utils.vector_functions import initialize_sample_collection
 
 def setup():
     """Initialize the system"""
@@ -35,7 +36,7 @@ def setup():
     print("-" * 60)
     
     default_username = "admin"
-    default_password = "adminecomarket2025"
+    default_password = "admin123"
     default_email = "admin@ecomarket.com"
     
     print(f"Usuario por defecto: {default_username}")
@@ -43,20 +44,36 @@ def setup():
     print(f"Email: {default_email}")
     print()
     
-    change = input("¿Deseas cambiar las credenciales? (s/n): ").lower()
+    # Check if running in Docker (non-interactive mode)
+    is_docker = os.environ.get('DOCKER_CONTAINER', False)
     
-    if change == 's':
-        username = input("Nuevo usuario: ").strip()
-        password = input("Nueva contraseña: ").strip()
-        email = input("Email: ").strip()
-        
-        if not username or not password:
-            print("❌ Usuario y contraseña son obligatorios")
-            return
-    else:
+    if is_docker:
+        print("🐳 Modo Docker detectado - usando credenciales por defecto")
         username = default_username
         password = default_password
         email = default_email
+    else:
+        try:
+            change = input("¿Deseas cambiar las credenciales? (s/n): ").lower()
+            
+            if change == 's':
+                username = input("Nuevo usuario: ").strip()
+                password = input("Nueva contraseña: ").strip()
+                email = input("Email: ").strip()
+                
+                if not username or not password:
+                    print("❌ Usuario y contraseña son obligatorios")
+                    return
+            else:
+                username = default_username
+                password = default_password
+                email = default_email
+        except EOFError:
+            # Running in non-interactive mode (like Docker)
+            print("🐳 Modo no interactivo detectado - usando credenciales por defecto")
+            username = default_username
+            password = default_password
+            email = default_email
     
     # Create admin user
     if create_admin_user(username, password, email):
@@ -76,6 +93,14 @@ def setup():
     else:
         print("❌ Error: El usuario ya existe")
         print()
+    
+    # Initialize sample documents collection
+    print("📚 Inicializando colección de documentos de muestra...")
+    if initialize_sample_collection():
+        print("✅ Documentos de muestra cargados exitosamente!")
+    else:
+        print("⚠️  No se pudieron cargar los documentos de muestra")
+    print()
     
     # Instructions
     print("=" * 60)

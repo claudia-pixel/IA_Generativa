@@ -1,33 +1,23 @@
 import streamlit as st
 import time
-from auth import verify_admin, create_session
+from controllers.auth import verify_admin, create_session
+from utils.theme_utils import apply_theme_with_header
+from models.db import init_database
 
 def admin_login():
     """Admin login page"""
     
-    st.markdown("""
-        <style>
-        .login-container {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 30px;
-            background-color: #f5f5f5;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .login-header {
-            text-align: center;
-            color: #2E7D32;
-            margin-bottom: 30px;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    # Inicializar la base de datos
+    init_database()
+    
+    # Aplicar tema con header
+    apply_theme_with_header()
     
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.markdown("<h1 class='login-header'>🔐 Admin Login</h1>", unsafe_allow_html=True)
-        st.markdown("<h3 style='text-align: center;'>EcoMarket</h3>", unsafe_allow_html=True)
+        st.markdown("<h2 class='login-header'>🔐 Admin Login</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: var(--text-color); margin-bottom: 30px;'>Acceso administrativo</p>", unsafe_allow_html=True)
         
         with st.form("login_form"):
             username = st.text_input("Usuario", placeholder="Ingresa tu usuario")
@@ -48,7 +38,7 @@ def admin_login():
                         st.success("✅ Login exitoso!")
                         st.balloons()
                         time.sleep(1)
-                        st.switch_page("pages/admin_panel.py")
+                        st.switch_page("views/admin_panel.py")
                     else:
                         st.error("❌ Usuario o contraseña incorrectos")
                 else:
