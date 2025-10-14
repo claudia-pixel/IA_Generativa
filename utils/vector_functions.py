@@ -267,29 +267,51 @@ def load_retriever(collection_name, score_threshold: float = 0.3):
     return retriever
 
 
-def generate_answer_from_context(retriever, question: str):
+def generate_answer_from_context(retriever, question: str, enable_logging: bool = False):
     """
     Ask a question and get an answer based on the provided context.
 
     Args:
         retriever: A retriever object to fetch relevant context.
         question (str): The question to be answered.
+        enable_logging (bool): Whether to enable detailed logging.
 
     Returns:
         str: The answer to the question based on the retrieved context.
     """
-    # Define the message template for the prompt
+    # Define the improved message template for the prompt
     message = """
-    Answer this question using the provided context only.
+    Eres un asistente útil para EcoMarket. Responde la pregunta del usuario usando ÚNICAMENTE la información proporcionada en el contexto.
 
-    {question}
+    REGLAS IMPORTANTES:
+    1. Usa ÚNICAMENTE la información del contexto proporcionado
+    2. NO inventes ni hagas suposiciones sobre información no presente
+    3. Si el contexto no contiene la información específica, di "No encontré esa información específica en nuestros documentos"
+    4. Sé preciso con números, emails y teléfonos
+    5. Si encuentras información de contacto, úsala exactamente como está escrita en el contexto
+    6. Si no estás seguro de algo, es mejor decir que no tienes esa información
 
-    Context:
+    Pregunta: {question}
+
+    Contexto:
     {context}
+
+    Respuesta:
     """
 
     # Create a chat prompt template from the message
     prompt = ChatPromptTemplate.from_messages([("human", message)])
+
+    # Log retrieved documents if logging is enabled
+    if enable_logging:
+        print(f"🔍 RAG LOGGING - Pregunta: {question}")
+        try:
+            docs = retriever.get_relevant_documents(question)
+            print(f"📊 Documentos recuperados: {len(docs)}")
+            for i, doc in enumerate(docs):
+                print(f"  📄 Doc {i+1}: {doc.metadata.get('source', 'Unknown')} - {doc.page_content[:100]}...")
+        except Exception as e:
+            print(f"❌ Error recuperando documentos: {e}")
 
     # Create a RAG (Retrieval-Augmented Generation) chain
     # This chain retrieves context, passes through the question,
@@ -297,7 +319,13 @@ def generate_answer_from_context(retriever, question: str):
     rag_chain = {"context": retriever, "question": RunnablePassthrough()} | prompt | llm
 
     # Invoke the RAG chain with the question and return the generated content
-    return rag_chain.invoke(question).content
+    response = rag_chain.invoke(question).content
+    
+    # Log response if logging is enabled
+    if enable_logging:
+        print(f"🤖 Respuesta generada: {response}")
+    
+    return response
 
 
 def add_documents_to_collection(vectordb, documents):

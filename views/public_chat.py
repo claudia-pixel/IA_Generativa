@@ -66,8 +66,8 @@ def public_chat():
             if os.path.exists("./static/persist/chroma.sqlite3"):
                 retriever = get_combined_retriever()
                 
-                # Generate response
-                response = generate_answer_from_context(retriever, prompt)
+                # Generate response with improved prompt
+                response = generate_answer_from_context(retriever, prompt, enable_logging=False)
             else:
                 response = """
                 🙏 Disculpa, actualmente estamos configurando nuestro sistema de respuestas automáticas.
