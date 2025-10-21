@@ -120,3 +120,17 @@ EcoMarket-RAG/
 ├── README.md \# Documentación del proyecto
 
 └── faiss_ecoshop/ \# Base vectorial local (FAISS)
+
+# Fase 3: Integración y Ejecución del Código
+
+### Entorno de trabajo:   
+Google Colab, con instalación de dependencias específicas como langchain-community, faiss-cpu, pypdf, unstructured, msoffcrypto-tool y jq.
+
+### Carga de documentos:   
+Se utilizaron loaders especializados para cada tipo de archivo (PDF, Excel, JSON). Los datos del Excel fueron transformados manualmente en objetos Document para conservar el contexto semántico.
+
+### Construcción del pipeline RAG:   
+Se integró el modelo llama3.2:3b mediante Ollama como LLM principal. El sistema RetrievalQA se configuró con búsqueda por similitud (k=3) para recuperar los fragmentos más relevantes.
+
+### Pruebas del sistema:   
+Se realizaron consultas típicas de atención al cliente, como disponibilidad de productos, precios, condiciones de devolución y contacto con soporte. El sistema respondió con precisión utilizando la base de conocimiento indexada.
