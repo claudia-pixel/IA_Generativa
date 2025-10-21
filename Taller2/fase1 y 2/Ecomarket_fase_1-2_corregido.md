@@ -67,8 +67,14 @@ Pipeline implementado:
 
 -   PDF: PyPDFLoader extrae texto preservando estructura de párrafos
 -   JSON: JSONLoader con jq_schema='.' procesa cada par pregunta-respuesta como un documento independiente
--   Excel: Transformación manual en objetos Document con formato enriquecido: python content = f"Producto: {row['Nombre']}\\n" f"Categoría: {row['Categoría']}\\n" f"Stock: {row['Cantidad en Stock']}\\n" f"Precio: {row['Precio']} dólares\\n"
+-   Excel: Transformación manual en objetos Document con formato enriquecido:
 
+ ```
+  python content = f"Producto: {row['Nombre']}\\n"
+                   f"Categoría: {row['Categoría']}\\n"
+                   f"Stock: {row['Cantidad en Stock']}\\n"
+                   f"Precio: {row['Precio']} dólares\\n"
+```
 2.  Segmentación:
 
 -   Aplicación de RecursiveCharacterTextSplitter sobre los documentos combinados
