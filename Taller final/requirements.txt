@@ -1,7 +1,10 @@
-streamlit>=1.28.0
-transformers==4.33.2
-sentencepiece>=0.1.99
-torch==2.0.1
-langchain>=0.1.14
-pandas>=2.1.0
+streamlit==1.37.1
+langchain==0.0.350
+langchain-community==0.0.37
+transformers==4.44.2
+sentence-transformers==3.0.1
+faiss-cpu==1.8.0.post1
+huggingface-hub==0.25.2
+python-dotenv==1.0.1
+
 
