@@ -19,9 +19,55 @@ from langchain_community.document_loaders import (
 from langchain_community.vectorstores.utils import filter_complex_metadata
 import environ
 
+# Importar traceable si está disponible
+try:
+    from langsmith import traceable
+    TRACEABLE_DECORATOR = traceable
+except ImportError:
+    # Si no está disponible, usar decorador vacío
+    def traceable(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    TRACEABLE_DECORATOR = traceable
+
 env = environ.Env()
 # reading .env file
 environ.Env.read_env()
+
+def get_base_dir():
+    """Obtener el directorio base del proyecto (dos niveles arriba desde src/utils/)"""
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Configurar LangSmith tracing ANTES de inicializar los modelos
+def _configure_langsmith_tracing():
+    """Configurar LangSmith tracing si está habilitado"""
+    langsmith_tracing = os.getenv("LANGSMITH_TRACING", "false")
+    langchain_tracing_v2 = os.getenv("LANGCHAIN_TRACING_V2", "false")
+    
+    tracing_enabled = (
+        langsmith_tracing.lower() == "true" or
+        langchain_tracing_v2.lower() == "true"
+    )
+    
+    if tracing_enabled:
+        api_key = os.getenv("LANGSMITH_API_KEY") or os.getenv("LANGCHAIN_API_KEY")
+        api_url = os.getenv("LANGSMITH_ENDPOINT") or os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
+        project_name = os.getenv("LANGCHAIN_PROJECT", "ecomarket-rag-system")
+        
+        if api_key:
+            os.environ["LANGCHAIN_TRACING_V2"] = "true"
+            os.environ["LANGCHAIN_ENDPOINT"] = api_url
+            os.environ["LANGCHAIN_API_KEY"] = api_key
+            os.environ["LANGCHAIN_PROJECT"] = project_name
+            print(f"✅ LangSmith tracing configurado - Proyecto: {project_name}")
+        else:
+            print("⚠️  LangSmith tracing habilitado pero no se encontró API_KEY")
+    else:
+        print("ℹ️  LangSmith tracing deshabilitado")
+
+# Configurar tracing antes de inicializar modelos
+_configure_langsmith_tracing()
 
 llm = ChatOpenAI(
     model="gpt-4o-mini",
@@ -52,10 +98,10 @@ def create_optimal_splitter(file_type: str, content: str = ""):
     )
     
     if is_structured:
-        # Para datos estructurados: fragmentos más pequeños
+        # Para datos estructurados: fragmentos medianos
         return CharacterTextSplitter(
-            chunk_size=300,     # Más pequeño para datos estructurados
-            chunk_overlap=30,   # Menos superposición
+            chunk_size=500,     # Fragmentos más grandes para capturar más productos
+            chunk_overlap=50,   # Buena superposición para contexto
             length_function=len,
             separator="\n"
         )
@@ -79,49 +125,134 @@ text_splitter = CharacterTextSplitter(
 
 def load_excel_with_pandas(file_path: str) -> list[Document]:
     """
-    Load Excel file using pandas for better reliability.
+    Load Excel file using pandas and create one Document per product row.
+    Each product becomes a separate chunk with rich metadata.
     
     Args:
         file_path (str): Path to the Excel file.
     
     Returns:
-        list[Document]: A list of Document objects.
+        list[Document]: A list of Document objects, one per product row.
     """
     try:
         # Read Excel file
         df = pd.read_excel(file_path)
         
-        # Convert DataFrame to text
-        text_content = ""
+        documents = []
         
-        # Add column headers
-        if not df.empty:
-            text_content += "Columnas: " + ", ".join(df.columns.tolist()) + "\n\n"
+        if df.empty:
+            return documents
+        
+        # Normalize column names to handle variations
+        def normalize_column_name(col_name: str) -> str:
+            """Normalize column names to standard format"""
+            col_lower = col_name.lower().strip()
             
-            # Add each row as text
-            for index, row in df.iterrows():
-                row_text = f"Fila {index + 1}: "
-                for col in df.columns:
-                    if pd.notna(row[col]):  # Only add non-null values
-                        row_text += f"{col}: {row[col]}, "
-                text_content += row_text.rstrip(", ") + "\n"
+            # Map common variations to standard names
+            if 'nombre' in col_lower and ('producto' in col_lower or 'product' in col_lower):
+                return 'producto_nombre'
+            elif 'producto' in col_lower:
+                return 'producto_nombre'
+            elif 'categoria' in col_lower or 'category' in col_lower:
+                return 'categoria'
+            elif 'cantidad' in col_lower or ('stock' in col_lower or 'quantity' in col_lower):
+                return 'cantidad'
+            elif 'precio' in col_lower or 'price' in col_lower:
+                if 'unitario' in col_lower or 'unit' in col_lower:
+                    return 'precio'
+                else:
+                    return 'precio'
+            elif 'fecha' in col_lower or 'date' in col_lower:
+                return 'fecha'
+            else:
+                return col_name
         
-        # Create document
-        document = Document(
-            page_content=text_content,
-            metadata={
+        # Create a mapping of normalized names to original names
+        column_mapping = {normalize_column_name(col): col for col in df.columns}
+        
+        # Create one Document per row (product)
+        for index, row in df.iterrows():
+            # Extract metadata
+            producto_nombre = None
+            categoria = None
+            cantidad = None
+            precio = None
+            fecha = None
+            
+            # Try to extract data from the row using normalized column names
+            for normalized_col, original_col in column_mapping.items():
+                value = row[original_col]
+                if pd.notna(value):
+                    if normalized_col == 'producto_nombre':
+                        producto_nombre = str(value)
+                    elif normalized_col == 'categoria':
+                        categoria = str(value)
+                    elif normalized_col == 'cantidad':
+                        cantidad = str(value) if not isinstance(value, (int, float)) else str(int(value))
+                    elif normalized_col == 'precio':
+                        precio = str(value)
+                    elif normalized_col == 'fecha':
+                        fecha = str(value)
+            
+            # Create a readable text content for the chunk
+            chunk_content_parts = []
+            
+            if producto_nombre:
+                chunk_content_parts.append(f"Producto: {producto_nombre}")
+            if categoria:
+                chunk_content_parts.append(f"Categoría: {categoria}")
+            if cantidad:
+                chunk_content_parts.append(f"Cantidad en Stock: {cantidad}")
+            if precio:
+                chunk_content_parts.append(f"Precio: {precio}")
+            if fecha:
+                chunk_content_parts.append(f"Fecha: {fecha}")
+            
+            # Also include all columns to ensure we don't lose information
+            for col in df.columns:
+                value = row[col]
+                if pd.notna(value):
+                    chunk_content_parts.append(f"{col}: {value}")
+            
+            chunk_content = " | ".join(chunk_content_parts)
+            
+            # Create metadata dictionary
+            metadata = {
                 "source": file_path,
                 "file_type": "excel",
                 "source_type": "inventory",
-                "total_rows": str(len(df)),
-                "columns": ", ".join(df.columns.tolist())  # Convert list to string
+                "row_index": index,
+                "total_rows": len(df)
             }
-        )
+            
+            # Add product-specific metadata
+            if producto_nombre:
+                metadata["producto_nombre"] = producto_nombre
+            if categoria:
+                metadata["categoria"] = categoria
+            if cantidad:
+                metadata["cantidad"] = cantidad
+            if precio:
+                metadata["precio"] = precio
+            if fecha:
+                metadata["fecha"] = fecha
+            
+            # Create document for this product
+            document = Document(
+                page_content=chunk_content,
+                metadata=metadata
+            )
+            
+            documents.append(document)
         
-        return [document]
+        print(f"✅ Loaded {len(documents)} products from Excel file")
+        
+        return documents
         
     except Exception as e:
-        print(f"Error loading Excel file with pandas: {e}")
+        print(f"❌ Error loading Excel file with pandas: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 
@@ -188,19 +319,27 @@ def create_collection(collection_name, documents):
         file_type = doc.metadata.get('file_type', 'unknown')
         content = doc.page_content
         
-        # Create optimal splitter for this document
-        optimal_splitter = create_optimal_splitter(file_type, content)
-        
-        # Split this specific document
-        doc_texts = optimal_splitter.split_documents([doc])
-        all_texts.extend(doc_texts)
-        
-        print(f"📄 Split {doc.metadata.get('source', 'unknown')} into {len(doc_texts)} chunks (type: {file_type})")
+        # For Excel files, check if it's already chunked at product level
+        # (has row_index metadata indicating it's a single product chunk)
+        if file_type == 'excel' and 'row_index' in doc.metadata:
+            # This is already a product-level chunk, don't split further
+            all_texts.append(doc)
+            print(f"📦 Product chunk (already chunked at product level)")
+        else:
+            # Create optimal splitter for this document
+            optimal_splitter = create_optimal_splitter(file_type, content)
+            
+            # Split this specific document
+            doc_texts = optimal_splitter.split_documents([doc])
+            all_texts.extend(doc_texts)
+            
+            print(f"📄 Split {doc.metadata.get('source', 'unknown')} into {len(doc_texts)} chunks (type: {file_type})")
     
     # Filter complex metadata
     texts = filter_complex_metadata(all_texts)
     
-    persist_directory = "./static/persist"
+    base_dir = get_base_dir()
+    persist_directory = os.path.join(base_dir, "static/persist")
 
     # Create a new Chroma collection from the text chunks
     try:
@@ -229,7 +368,8 @@ def load_collection(collection_name):
 
     This function loads a previously created Chroma collection from disk.
     """
-    persist_directory = "./static/persist"
+    base_dir = get_base_dir()
+    persist_directory = os.path.join(base_dir, "static/persist")
     # Load the Chroma collection from the specified directory
     vectordb = Chroma(
         persist_directory=persist_directory,
@@ -262,11 +402,12 @@ def load_retriever(collection_name, score_threshold: float = 0.3):
     # Create a retriever from the collection with specified search parameters
     retriever = vectordb.as_retriever(
         search_type="similarity",
-        search_kwargs={"k": 5},
+        search_kwargs={"k": 10},  # Más documentos para preguntas amplias
     )
     return retriever
 
 
+@TRACEABLE_DECORATOR
 def generate_answer_from_context(retriever, question: str, enable_logging: bool = False):
     """
     Ask a question and get an answer based on the provided context.
@@ -279,6 +420,11 @@ def generate_answer_from_context(retriever, question: str, enable_logging: bool 
     Returns:
         str: The answer to the question based on the retrieved context.
     """
+    import time
+    from utils.tracing import tracer, log_retrieval, log_generation
+    
+    start_time = time.time()
+    
     # Define the improved message template for the prompt
     message = """
     Eres un asistente útil para EcoMarket. Responde la pregunta del usuario usando ÚNICAMENTE la información proporcionada en el contexto.
@@ -303,15 +449,20 @@ def generate_answer_from_context(retriever, question: str, enable_logging: bool 
     prompt = ChatPromptTemplate.from_messages([("human", message)])
 
     # Log retrieved documents if logging is enabled
+    retrieved_docs = []
     if enable_logging:
         print(f"🔍 RAG LOGGING - Pregunta: {question}")
         try:
-            docs = retriever.get_relevant_documents(question)
-            print(f"📊 Documentos recuperados: {len(docs)}")
-            for i, doc in enumerate(docs):
+            retrieved_docs = retriever.get_relevant_documents(question)
+            print(f"📊 Documentos recuperados: {len(retrieved_docs)}")
+            for i, doc in enumerate(retrieved_docs):
                 print(f"  📄 Doc {i+1}: {doc.metadata.get('source', 'Unknown')} - {doc.page_content[:100]}...")
         except Exception as e:
             print(f"❌ Error recuperando documentos: {e}")
+    
+    # Log retrieval para trazabilidad
+    if retrieved_docs:
+        log_retrieval(question, retrieved_docs)
 
     # Create a RAG (Retrieval-Augmented Generation) chain
     # This chain retrieves context, passes through the question,
@@ -324,6 +475,10 @@ def generate_answer_from_context(retriever, question: str, enable_logging: bool 
     # Log response if logging is enabled
     if enable_logging:
         print(f"🤖 Respuesta generada: {response}")
+    
+    # Log generation para trazabilidad
+    processing_time = time.time() - start_time
+    log_generation(question, response, processing_time)
     
     return response
 
@@ -339,12 +494,26 @@ def add_documents_to_collection(vectordb, documents):
     This function splits the documents into smaller chunks, adds them to the
     vector database, and persists the changes.
     """
-
-    # Split the documents into smaller text chunks
-    texts = text_splitter.split_documents(documents)
+    all_texts = []
+    
+    for doc in documents:
+        # Determine file type from metadata
+        file_type = doc.metadata.get('file_type', 'unknown')
+        
+        # For Excel files, check if it's already chunked at product level
+        # (has row_index metadata indicating it's a single product chunk)
+        if file_type == 'excel' and 'row_index' in doc.metadata:
+            # This is already a product-level chunk, don't split further
+            all_texts.append(doc)
+            print(f"📦 Adding product chunk (already chunked at product level)")
+        else:
+            # Split the document into smaller text chunks
+            doc_texts = text_splitter.split_documents([doc])
+            all_texts.extend(doc_texts)
+            print(f"📄 Split document into {len(doc_texts)} chunks")
     
     # Filter complex metadata
-    texts = filter_complex_metadata(texts)
+    texts = filter_complex_metadata(all_texts)
 
     # Add the text chunks to the vector database
     vectordb.add_documents(texts)
@@ -360,7 +529,8 @@ def load_sample_documents():
     tuple: (documents, collection_name) - A tuple containing the loaded documents 
            and the collection name for sample documents.
     """
-    sample_dir = "./static/sample_documents"
+    base_dir = get_base_dir()
+    sample_dir = os.path.join(base_dir, "static/sample_documents")
     collection_name = "sample_documents"
     
     if not os.path.exists(sample_dir):
@@ -418,7 +588,8 @@ def is_sample_collection_initialized():
     bool: True if collection exists and has documents, False otherwise.
     """
     try:
-        persist_directory = "./static/persist"
+        base_dir = get_base_dir()
+        persist_directory = os.path.join(base_dir, "static/persist")
         collection_path = os.path.join(persist_directory, "chroma.sqlite3")
         
         if not os.path.exists(collection_path):
@@ -452,7 +623,8 @@ def initialize_sample_collection():
         print("🔄 Starting sample collection initialization...")
         
         # Check if sample documents directory exists
-        sample_dir = "./static/sample_documents"
+        base_dir = get_base_dir()
+        sample_dir = os.path.join(base_dir, "static/sample_documents")
         if not os.path.exists(sample_dir):
             print(f"❌ Sample documents directory not found: {sample_dir}")
             return False
@@ -467,7 +639,8 @@ def initialize_sample_collection():
         print(f"📊 Loaded {len(documents)} documents from sample files")
         
         # Create/update the collection
-        persist_directory = "./static/persist"
+        base_dir = get_base_dir()
+        persist_directory = os.path.join(base_dir, "static/persist")
         os.makedirs(persist_directory, exist_ok=True)
         
         # Create new collection
@@ -504,7 +677,8 @@ def register_sample_documents_in_db():
     try:
         from models.db import create_source
         
-        sample_dir = "./static/sample_documents"
+        base_dir = get_base_dir()
+        sample_dir = os.path.join(base_dir, "static/sample_documents")
         if not os.path.exists(sample_dir):
             return
         

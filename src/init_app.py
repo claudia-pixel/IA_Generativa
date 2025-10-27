@@ -8,6 +8,10 @@ import os
 import sys
 import time
 import sqlite3
+
+# Agregar el directorio src al path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from models.db import init_database, connect_db
 from controllers.auth import create_admin_table, create_admin_user
 from utils.vector_functions import initialize_sample_collection
@@ -39,12 +43,13 @@ def initialize_application():
     print("=" * 60)
     print()
     
-    # 1. Crear directorios necesarios
+    # 1. Crear directorios necesarios (desde src, subir un nivel)
     print("📁 Creando directorios necesarios...")
-    os.makedirs("static/persist", exist_ok=True)
-    os.makedirs("static/temp_files", exist_ok=True)
-    os.makedirs("static/sample_documents", exist_ok=True)
-    os.makedirs("data", exist_ok=True)
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.makedirs(os.path.join(base_dir, "static/persist"), exist_ok=True)
+    os.makedirs(os.path.join(base_dir, "static/temp_files"), exist_ok=True)
+    os.makedirs(os.path.join(base_dir, "static/sample_documents"), exist_ok=True)
+    os.makedirs(os.path.join(base_dir, "data"), exist_ok=True)
     print("✅ Directorios creados")
     print()
     

@@ -1,8 +1,13 @@
 import streamlit as st
 import time
 import os
+import sys
+
+# Agregar src al path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from models.db import create_message, get_messages
-from utils.vector_functions import load_retriever, generate_answer_from_context, get_combined_retriever
+from agents.rag_agent import get_agent
 from utils.theme_utils import apply_theme_with_header
 
 def stream_response(response):
@@ -62,21 +67,9 @@ def public_chat():
             st.markdown(prompt)
         
         try:
-            # Verificar si existe la base de datos ChromaDB
-            if os.path.exists("./static/persist/chroma.sqlite3"):
-                retriever = get_combined_retriever()
-                
-                # Generate response with improved prompt
-                response = generate_answer_from_context(retriever, prompt, enable_logging=False)
-            else:
-                response = """
-                🙏 Disculpa, actualmente estamos configurando nuestro sistema de respuestas automáticas.
-                
-                Por favor, contacta directamente con nuestro equipo de soporte:
-                - 📧 Email: soporte@ecomarket.com
-                - 📞 Teléfono: +57 324 456 4450
-                - ⏰ Horario: Lunes a Viernes 9:00 AM - 6:00 PM
-                """
+            # Usar el agente RAG
+            agent = get_agent()
+            response = agent.process_query(prompt, enable_logging=False)
         except Exception as e:
             response = """
             😔 Lo siento, tuve un problema al procesar tu consulta.

@@ -105,10 +105,13 @@ pip install -r requirements.txt
 export OPENAI_API_KEY=tu_api_key_aqui
 
 # Inicializar la aplicación
-python init_app.py
+cd src && python init_app.py
 
 # Ejecutar la aplicación
-streamlit run app.py
+cd src && streamlit run app.py
+
+# O usar el script wrapper desde la raíz
+python run_app.py
 ```
 
 ## 🎮 Uso del Sistema
@@ -183,6 +186,40 @@ sqlite3 doc_sage.sqlite ".tables"
 - **Manejo de Errores**: Reintentos automáticos y logging detallado
 - **Detección Inteligente**: Identifica consultas de contacto automáticamente
 
+### Agente RAG
+
+- **Arquitectura Modular**: El agente está separado en `src/agents/` para mejor organización
+- **Singleton Pattern**: Una única instancia del agente se comparte en toda la aplicación
+- **Manejo de Estado**: Gestiona automáticamente la inicialización y disponibilidad del sistema
+- **Respuestas Inteligentes**: Maneja errores y respuestas de respaldo automáticamente
+- **Sistema de Herramientas**: Herramientas modulares en `src/tools/` que el agente puede usar
+
+#### Herramientas Disponibles
+
+- **DocumentRetriever**: Recupera documentos relevantes de la base vectorial
+- **QueryProcessor**: Clasifica y procesa consultas del usuario
+  - Clasificación por categoría (producto, precio, contacto, etc.)
+  - Detección de consultas de lista vs consultas específicas
+  - Extracción de entidades relevantes
+  - Generación de variaciones de consultas
+
+### Sistema de Trazabilidad
+
+- **Logging Automático**: Todas las operaciones RAG se registran automáticamente
+- **Panel de Trazabilidad**: Visualiza logs en tiempo real en el panel de administración
+- **Métricas y Estadísticas**: Tasa de éxito, operaciones por tipo, tiempos de procesamiento
+- **Integración con LangSmith**: Opcional, para trazabilidad avanzada en la nube
+
+#### Configurar LangSmith (Opcional)
+
+```bash
+# En tu archivo .env
+LANGSMITH_TRACING=true
+LANGSMITH_ENDPOINT=https://api.smith.langchain.com
+LANGSMITH_API_KEY=tu_api_key_de_langsmith
+LANGCHAIN_PROJECT=ecomarket-rag-system
+```
+
 ### Configuración del LLM
 
 ```python
@@ -197,37 +234,29 @@ llm = ChatOpenAI(
 
 ```
 GENERATIVE_AI_ICESI/
-├── 📁 app.py                    # Aplicación principal Streamlit
-├── 📁 init_app.py              # Script de inicialización
-├── 📁 requirements.txt         # Dependencias Python
-├── 📁 docker-compose.yml       # Configuración Docker
-├── 📁 Dockerfile              # Imagen Docker
-├── 📁 nginx.conf              # Configuración Nginx
-│
-├── 📁 config/                 # Configuración
-│   └── theme_config.py        # Temas de la interfaz
-│
-├── 📁 controllers/            # Controladores
-│   └── auth.py               # Autenticación
-│
-├── 📁 models/                 # Modelos de datos
-│   └── db.py                 # Base de datos SQLite
-│
-├── 📁 utils/                  # Utilidades
-│   ├── vector_functions.py   # Funciones RAG
-│   └── theme_utils.py        # Utilidades de tema
-│
-├── 📁 views/                  # Vistas
-│   ├── public_chat.py        # Chat público
-│   ├── admin_login.py        # Login admin
-│   └── admin_panel.py        # Panel admin
+├── 📁 src/                    # Código fuente principal
+│   ├── app.py                # Aplicación principal Streamlit
+│   ├── init_app.py           # Script de inicialización
+│   ├── agents/               # Agentes RAG (lógica del agente)
+│   ├── tools/                # 🆕 Herramientas del agente
+│   ├── config/               # Configuración y temas
+│   ├── controllers/          # Controladores (auth, etc.)
+│   ├── models/               # Modelos de datos (SQLite)
+│   ├── utils/                # Utilidades (RAG, temas, tracing)
+│   ├── views/                # Vistas de la aplicación
+│   └── pages/                # Páginas de Streamlit
 │
 ├── 📁 static/                 # Archivos estáticos
-│   ├── 📁 sample_documents/  # Documentos de muestra
-│   └── 📁 persist/           # Base de datos vectorial
+│   ├── sample_documents/     # Documentos de muestra
+│   └── persist/              # Base de datos vectorial
 │
-└── 📁 fase1 y fase 2/        # Documentación
-    └── ECOMARKET.md          # Documentación técnica
+├── 📁 data/                   # Directorio de datos
+├── 📁 fase1 y fase 2/        # Documentación del proyecto
+├── docker-compose.yml        # Configuración Docker
+├── Dockerfile                # Imagen Docker
+├── nginx.conf               # Configuración Nginx
+├── requirements.txt         # Dependencias Python
+└── README.md                # Este archivo
 ```
 
 ## 🚨 Solución de Problemas

@@ -51,10 +51,14 @@ def admin_panel():
             st.rerun()
     
     # Tabs for different management sections
-    tab1, tab2, tab3 = st.tabs(["📚 Documentos", "📊 Estadísticas", "⚙️ Configuración"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📚 Documentos", "📊 Estadísticas", "⚙️ Configuración", "🔍 Trazabilidad"])
     
     with tab1:
         manage_documents()
+    
+    with tab4:
+        from views.tracing_panel import display_tracing_panel
+        display_tracing_panel()
     
     with tab2:
         show_statistics()
@@ -101,6 +105,10 @@ def manage_documents():
                     # Load document
                     document = load_document(temp_file_path)
                     
+                    # Detect file type for SQLite registration
+                    _, file_ext = os.path.splitext(uploaded_file.name)
+                    source_type = "excel" if file_ext in [".xlsx", ".xls"] else "document"
+                    
                     # Create or update collection
                     if not os.path.exists(f"./static/persist/{collection_name}"):
                         vectordb = create_collection(collection_name, document)
@@ -108,12 +116,12 @@ def manage_documents():
                         vectordb = load_collection(collection_name)
                         vectordb = add_documents_to_collection(vectordb, document)
                     
-                    # Save to database
+                    # Save to database with proper type
                     create_source(
                         uploaded_file.name, 
                         doc_description, 
                         1,  # System chat
-                        source_type="document"
+                        source_type=source_type
                     )
                     
                     # Remove temp file

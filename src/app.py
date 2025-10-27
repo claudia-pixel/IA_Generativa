@@ -1,4 +1,10 @@
 import streamlit as st
+import sys
+import os
+
+# Agregar el directorio src al path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from views.public_chat import public_chat
 from utils.theme_utils import apply_global_theme
 from models.db import init_database

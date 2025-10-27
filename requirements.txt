@@ -45,3 +45,7 @@ cryptography>=41.0.0
 
 # File handling
 filetype>=1.2.0
+
+# Tracing and observability
+langsmith>=0.1.0
+streamlit-aggrid>=0.3.3

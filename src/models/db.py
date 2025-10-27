@@ -1,9 +1,13 @@
 import sqlite3
 import time
+import os
 
 def connect_db():
     """Connect to SQLite database with timeout and WAL mode"""
-    conn = sqlite3.connect("doc_sage.sqlite", timeout=30.0)
+    # Obtener el directorio base del proyecto (dos niveles arriba desde src/models/)
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    db_path = os.path.join(base_dir, "doc_sage.sqlite")
+    conn = sqlite3.connect(db_path, timeout=30.0)
     # Enable WAL mode for better concurrency
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA synchronous=NORMAL")

@@ -10,6 +10,14 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - LANGSMITH_TRACING=${LANGSMITH_TRACING:-false}
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - LANGSMITH_ENDPOINT=${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+      - LANGCHAIN_TRACING_V2=true
+      - LANGCHAIN_ENDPOINT=${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+      - LANGCHAIN_API_KEY=${LANGSMITH_API_KEY}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT:-ecomarket-rag-system}
+      - DOCKER_CONTAINER=true
     volumes:
       # Persist database and vector data
       - ./data:/app/data
