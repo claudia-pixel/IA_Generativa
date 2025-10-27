@@ -118,6 +118,32 @@ def init_database():
         )
     """)
     
+    # Create google_auth table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS google_auth (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            google_id TEXT UNIQUE NOT NULL,
+            name TEXT,
+            picture_url TEXT,
+            email_verified BOOLEAN DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            last_login DATETIME
+        )
+    """)
+    
+    # Create otp_codes table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS otp_codes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL,
+            otp_code TEXT NOT NULL,
+            expires_at DATETIME NOT NULL,
+            used BOOLEAN DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    
     # Initialize default chats if they don't exist
     cursor.execute("SELECT COUNT(*) FROM chat")
     if cursor.fetchone()[0] == 0:

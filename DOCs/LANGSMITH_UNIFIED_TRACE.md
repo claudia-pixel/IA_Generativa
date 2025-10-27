@@ -123,3 +123,5 @@ LANGSMITH_API_KEY=...
 - El `run_id` del parent se pasa como metadata
 - Si LangSmith no está disponible, se usa el flujo sin agrupación
 
+
+

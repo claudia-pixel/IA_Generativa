@@ -49,3 +49,8 @@ filetype>=1.2.0
 # Tracing and observability
 langsmith>=0.1.0
 streamlit-aggrid>=0.3.3
+
+# Google OAuth and email
+google-auth>=2.23.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.2.0

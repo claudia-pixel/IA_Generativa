@@ -46,6 +46,12 @@ def admin_login():
         
         st.markdown("---")
         
+        # Google Login button
+        if st.button("🔵 Continuar con Google", use_container_width=True, type="secondary"):
+            st.switch_page("views/google_login.py")
+        
+        st.markdown("---")
+        
         if st.button("← Volver al Chat Público", use_container_width=True):
             st.switch_page("app.py")
 

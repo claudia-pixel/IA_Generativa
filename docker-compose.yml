@@ -7,9 +7,15 @@ services:
     ports:
       - "8501:8501"
     environment:
+      # OpenAI
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      
+      # Streamlit
       - STREAMLIT_SERVER_PORT=8501
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - DOCKER_CONTAINER=true
+      
+      # LangSmith (Optional)
       - LANGSMITH_TRACING=${LANGSMITH_TRACING:-false}
       - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
       - LANGSMITH_ENDPOINT=${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
@@ -17,7 +23,19 @@ services:
       - LANGCHAIN_ENDPOINT=${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
       - LANGCHAIN_API_KEY=${LANGSMITH_API_KEY}
       - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT:-ecomarket-rag-system}
-      - DOCKER_CONTAINER=true
+      
+      # Google OAuth
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI:-http://localhost:8501/google_login}
+      - APP_URL=${APP_URL:-http://localhost:8501}
+      
+      # Email SMTP
+      - SMTP_SERVER=${SMTP_SERVER:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM=${SMTP_FROM}
     volumes:
       # Persist database and vector data
       - ./data:/app/data

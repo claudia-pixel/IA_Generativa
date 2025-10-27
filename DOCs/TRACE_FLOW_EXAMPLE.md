@@ -156,3 +156,5 @@ El panel de trazabilidad ahora muestra traces agrupados, permitiendo ver toda la
 - **Performance tracking** - Medir tiempos por interacción completa
 - **Visualización clara** - Timeline ordenado de operaciones
 
+
+
