@@ -1,0 +1,6 @@
+1001,Botella Reutilizable de Acero Inoxidable,Defectuosa en la tapa
+1002,Bolsa de Tela Ecológica Reutilizable,Cambio por color diferente
+1003,Cepillo de Bambú para Dientes,Defectuoso (cerdas sueltas)
+1004,Lámpara Solar para Jardín,No funciona correctamente
+1005,Shampoo Sólido Vegano (100g),No era el aroma solicitado
+1006,Cuaderno Reciclado (100 páginas),Error en el pedido
