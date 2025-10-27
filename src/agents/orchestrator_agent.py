@@ -7,12 +7,14 @@ import os
 import sys
 import json
 import time
+import uuid
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.tracing import tracer
 from templates.agent_reasoning import get_agent_reasoning_prompt, get_reasoning_prompt
 from agents.rag_agent import EcoMarketAgent
+from tools.chat_memory import store_chat_memory, retrieve_chat_memory, extract_user_info, get_context_for_query
 
 try:
     from langchain_openai import ChatOpenAI
@@ -280,6 +282,83 @@ class OrchestratorAgent:
             "result": response,
             "method": "Ticket query"
         }
+    
+    @traceable(name="OrchestratorAgent.store_user_info")
+    def store_user_info(self, session_id: str, query: str, trace_id: str = None) -> dict:
+        """
+        Extraer y almacenar información del usuario de la consulta
+        
+        Args:
+            session_id: ID de la sesión
+            query: Consulta del usuario
+            trace_id: ID del trace
+            
+        Returns:
+            dict: Información extraída
+        """
+        try:
+            from tools.chat_memory import extract_user_info as extract_info_helper
+            
+            # Llamar a la función helper que internamente llama store_chat_memory con trace_id
+            info = extract_info_helper(query, session_id, trace_id=trace_id)
+            
+            tracer.log(
+                operation="USER_INFO_EXTRACTED",
+                message=f"Información extraída: {len(info.get('extracted', {}))} campo(s)",
+                metadata=info,
+                level="INFO",
+                trace_id=trace_id
+            )
+            
+            return info
+            
+        except Exception as e:
+            tracer.log(
+                operation="EXTRACT_INFO_ERROR",
+                message=f"Error extrayendo info: {str(e)}",
+                level="ERROR",
+                trace_id=trace_id
+            )
+            return {"session_id": session_id, "extracted": {}, "count": 0}
+    
+    @traceable(name="OrchestratorAgent.retrieve_memory")
+    def retrieve_memory(self, session_id: str, trace_id: str = None) -> str:
+        """
+        Recuperar memorias de la sesión para enriquecer el contexto
+        
+        Args:
+            session_id: ID de la sesión
+            trace_id: ID del trace
+            
+        Returns:
+            str: Contexto formateado
+        """
+        try:
+            memories = retrieve_chat_memory(session_id, memory_key=None, trace_id=trace_id)
+            
+            if memories.get("found"):
+                context = get_context_for_query(session_id, trace_id=trace_id)
+                
+                tracer.log(
+                    operation="MEMORY_RETRIEVED",
+                    message=f"Memorias recuperadas para sesión",
+                    metadata={"session_id": session_id, "count": memories.get("count", 0)},
+                    level="INFO",
+                    trace_id=trace_id
+                )
+                
+                return context
+            else:
+                return ""
+                
+        except Exception as e:
+            tracer.log(
+                operation="MEMORY_RETRIEVE_ERROR",
+                message=f"Error recuperando memoria: {str(e)}",
+                level="ERROR",
+                trace_id=trace_id
+            )
+            return ""
 
 
 # Singleton global

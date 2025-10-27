@@ -105,6 +105,19 @@ def init_database():
         )
     """)
     
+    # Create chat_memory table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS chat_memory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT NOT NULL,
+            memory_key TEXT NOT NULL,
+            memory_value TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            expires_at DATETIME NOT NULL,
+            UNIQUE(session_id, memory_key)
+        )
+    """)
+    
     # Initialize default chats if they don't exist
     cursor.execute("SELECT COUNT(*) FROM chat")
     if cursor.fetchone()[0] == 0:
@@ -429,6 +442,144 @@ def delete_ticket(ticket_number):
     deleted = cursor.rowcount > 0
     conn.close()
     return deleted
+
+# CRUD Operations for 'chat_memory' table
+def store_memory(session_id: str, memory_key: str, memory_value: str, ttl_minutes: int = 5) -> bool:
+    """
+    Store a memory with TTL
+    
+    Args:
+        session_id: Session identifier
+        memory_key: Key for the memory
+        memory_value: Value to store
+        ttl_minutes: Time to live in minutes (default: 5)
+        
+    Returns:
+        bool: True if successful
+    """
+    from datetime import datetime, timedelta
+    
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    # Calculate expiration time
+    expires_at = datetime.now() + timedelta(minutes=ttl_minutes)
+    
+    try:
+        # Use INSERT OR REPLACE to handle duplicates
+        cursor.execute("""
+            INSERT OR REPLACE INTO chat_memory (session_id, memory_key, memory_value, expires_at)
+            VALUES (?, ?, ?, ?)
+        """, (session_id, memory_key, memory_value, expires_at.isoformat()))
+        
+        conn.commit()
+        success = True
+    except Exception as e:
+        print(f"Error storing memory: {e}")
+        conn.rollback()
+        success = False
+    finally:
+        conn.close()
+    
+    return success
+
+def get_memory(session_id: str, memory_key: str = None) -> dict:
+    """
+    Retrieve memory(ies) for a session
+    
+    Args:
+        session_id: Session identifier
+        memory_key: Specific key to retrieve (optional)
+        
+    Returns:
+        dict: Memory value(s)
+    """
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    try:
+        # First, clean up expired memories
+        cursor.execute("DELETE FROM chat_memory WHERE expires_at < datetime('now')")
+        
+        # Retrieve memories
+        if memory_key:
+            cursor.execute("""
+                SELECT memory_key, memory_value 
+                FROM chat_memory 
+                WHERE session_id = ? AND memory_key = ? AND expires_at >= datetime('now')
+            """, (session_id, memory_key))
+        else:
+            cursor.execute("""
+                SELECT memory_key, memory_value 
+                FROM chat_memory 
+                WHERE session_id = ? AND expires_at >= datetime('now')
+            """, (session_id,))
+        
+        rows = cursor.fetchall()
+        
+        # If specific key requested, return just the value
+        if memory_key and rows:
+            return rows[0][1]  # memory_value
+        
+        # Otherwise return all as dict
+        memories = {row[0]: row[1] for row in rows}
+        
+        conn.commit()
+        return memories
+        
+    except Exception as e:
+        print(f"Error retrieving memory: {e}")
+        return {}
+    finally:
+        conn.close()
+
+def delete_memory(session_id: str, memory_key: str = None) -> bool:
+    """
+    Delete memory(ies) for a session
+    
+    Args:
+        session_id: Session identifier
+        memory_key: Specific key to delete (optional, if None deletes all)
+        
+    Returns:
+        bool: True if successful
+    """
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    try:
+        if memory_key:
+            cursor.execute("DELETE FROM chat_memory WHERE session_id = ? AND memory_key = ?", 
+                         (session_id, memory_key))
+        else:
+            cursor.execute("DELETE FROM chat_memory WHERE session_id = ?", (session_id,))
+        
+        conn.commit()
+        deleted = cursor.rowcount > 0
+    except Exception as e:
+        print(f"Error deleting memory: {e}")
+        conn.rollback()
+        deleted = False
+    finally:
+        conn.close()
+    
+    return deleted
+
+def cleanup_expired_memories():
+    """Remove expired memories from the database"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("DELETE FROM chat_memory WHERE expires_at < datetime('now')")
+        conn.commit()
+        deleted = cursor.rowcount
+        return deleted
+    except Exception as e:
+        print(f"Error cleaning up memories: {e}")
+        return 0
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
     init_database()

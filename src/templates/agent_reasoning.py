@@ -23,6 +23,9 @@ HERRAMIENTAS DISPONIBLES:
 4. **TICKET_QUERY**: Consultar tickets existentes
 5. **DATABASE_QUERY**: Consultar base de datos
 
+NOTA: El sistema tiene acceso automático a memoria de sesión (información previa del usuario).
+Si la consulta del usuario menciona el contexto previo o datos personales, úsalos para proporcionar respuestas personalizadas.
+
 CONSULTA DEL USUARIO:
 {user_query}
 

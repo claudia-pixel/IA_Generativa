@@ -10,3 +10,11 @@ from .ticket_manager import (
     consultar_ticket,
     extraer_info_cliente
 )
+
+from .chat_memory import (
+    store_chat_memory,
+    retrieve_chat_memory,
+    clear_chat_memory,
+    extract_user_info,
+    get_context_for_query
+)

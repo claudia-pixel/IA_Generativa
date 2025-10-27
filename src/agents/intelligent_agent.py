@@ -41,30 +41,39 @@ class IntelligentAgent:
         # Usar los agentes especializados
         self.orchestrator = get_orchestrator()
         self.response_agent = get_response_agent()
+        self.active_sessions = {}  # Track active user sessions
         print("✅ Intelligent Agent (Coordinador) inicializado")
     
     def is_ready(self):
         """Verificar si el agente está listo"""
         return self.orchestrator.is_ready()
     
-    def process_query(self, query: str, enable_logging: bool = False) -> str:
+    def process_query(self, query: str, enable_logging: bool = False, session_id: str = None) -> str:
         """
         Procesar una consulta del usuario de manera inteligente.
         
         Flujo:
         1. Generar trace_id único para toda la interacción
-        2. Orchestrator analiza y decide qué hacer
-        3. Orchestrator ejecuta herramientas
-        4. Response Agent genera respuesta amigable
+        2. Gestionar memoria de sesión
+        3. Orchestrator analiza y decide qué hacer
+        4. Orchestrator ejecuta herramientas
+        5. Response Agent genera respuesta amigable
         
         Args:
             query: Consulta del usuario
             enable_logging: Habilitar logging detallado
+            session_id: ID de sesión del usuario (opcional)
             
         Returns:
             str: Respuesta amigable del agente
         """
         start_time = time.time()
+        
+        # Generar o usar session_id
+        if not session_id:
+            # Por ahora usamos un session_id simple basado en el usuario
+            # En producción esto vendría de la sesión del usuario
+            session_id = "default_session"
         
         # Generar un trace_id único para toda esta interacción
         trace_id = tracer.generate_trace_id()
@@ -93,13 +102,14 @@ class IntelligentAgent:
                     project_name=project_name,
                     metadata={
                         "query": query[:200],
-                        "trace_id": trace_id
+                        "trace_id": trace_id,
+                        "session_id": session_id
                     }
                 ):
                     # Ahora ejecutar todo el flujo dentro del contexto
-                    return self._process_query_flow(query, trace_id, start_time)
+                    return self._process_query_flow(query, trace_id, start_time, session_id)
             else:
-                return self._process_query_flow(query, trace_id, start_time)
+                return self._process_query_flow(query, trace_id, start_time, session_id)
             
         except Exception as e:
             tracer.log(
@@ -112,10 +122,23 @@ class IntelligentAgent:
             # Respuesta de error amigable
             return self.response_agent.get_error_response(str(e))
     
-    def _process_query_flow(self, query: str, trace_id: str, start_time: float) -> str:
+    def _process_query_flow(self, query: str, trace_id: str, start_time: float, session_id: str = None) -> str:
         """Procesar el flujo completo de la consulta (con o sin LangSmith)"""
-        # PASO 1: Orchestrator analiza la consulta
-        analysis = self.orchestrator.analyze_query(query, trace_id)
+        
+        # PASO 0: Gestionar memoria de sesión
+        # Extraer y almacenar información del usuario si la proporciona
+        self.orchestrator.store_user_info(session_id, query, trace_id)
+        
+        # Recuperar memoria existente para enriquecer el contexto
+        memory_context = self.orchestrator.retrieve_memory(session_id, trace_id)
+        
+        # Enriquecer query con contexto de memoria si existe
+        enriched_query = query
+        if memory_context:
+            enriched_query = f"{query}\n\n{memory_context}"
+        
+        # PASO 1: Orchestrator analiza la consulta (enriquecida con memoria)
+        analysis = self.orchestrator.analyze_query(enriched_query, trace_id)
         
         tracer.log(
             operation="ORCHESTRATOR_ANALYSIS",
@@ -142,7 +165,7 @@ class IntelligentAgent:
             return response
         
         # PASO 2: Orchestrator ejecuta herramientas
-        tool_results = self.orchestrator.execute_tools(analysis, query, trace_id)
+        tool_results = self.orchestrator.execute_tools(analysis, enriched_query, trace_id)
         
         tracer.log(
             operation="TOOLS_EXECUTED",
