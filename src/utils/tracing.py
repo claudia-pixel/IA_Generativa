@@ -31,6 +31,7 @@ class TracingLogger:
     def __init__(self):
         self.logs: List[Dict[str, Any]] = []
         self.client = None
+        self.active_trace_id = None  # Trace ID actual activo
         
         # Configurar LangSmith si está disponible
         if LANGSMITH_AVAILABLE:
@@ -69,16 +70,28 @@ class TracingLogger:
             except Exception as e:
                 print(f"⚠️  No se pudo configurar LangSmith: {e}")
     
+    def generate_trace_id(self) -> str:
+        """Generar un nuevo trace ID único"""
+        import uuid
+        trace_id = f"trace_{uuid.uuid4().hex[:12]}"
+        self.active_trace_id = trace_id
+        return trace_id
+    
     def log(
         self,
         operation: str,
         message: str,
         metadata: Optional[Dict[str, Any]] = None,
-        level: str = "INFO"
+        level: str = "INFO",
+        trace_id: Optional[str] = None
     ):
-        """Registrar un evento en el log"""
+        """Registrar un evento en el log con trace_id"""
+        # Usar trace_id proporcionado o el activo
+        current_trace_id = trace_id or self.active_trace_id
+        
         log_entry = {
             "timestamp": datetime.datetime.now().isoformat(),
+            "trace_id": current_trace_id,
             "operation": operation,
             "message": message,
             "metadata": metadata or {},
@@ -237,6 +250,7 @@ def get_statistics() -> Dict[str, Any]:
     # Contar por operación
     operations = {}
     error_count = 0
+    unique_traces = set()
     
     for log in all_logs:
         op = log.get("operation", "unknown")
@@ -244,12 +258,32 @@ def get_statistics() -> Dict[str, Any]:
         
         if log.get("level") == "ERROR":
             error_count += 1
+        
+        # Rastrear trace_id únicos
+        trace_id = log.get("trace_id")
+        if trace_id:
+            unique_traces.add(trace_id)
     
     return {
         "total_logs": len(all_logs),
+        "unique_traces": len(unique_traces),
         "operations": operations,
         "error_count": error_count,
         "success_rate": round((len(all_logs) - error_count) / len(all_logs) * 100, 2) if all_logs else 0,
         "most_recent": all_logs[0] if all_logs else None
     }
+
+
+def get_trace_logs(trace_id: str) -> List[Dict[str, Any]]:
+    """
+    Obtener todos los logs de un trace específico.
+    
+    Args:
+        trace_id: ID del trace
+        
+    Returns:
+        List[Dict]: Logs del trace
+    """
+    all_logs = tracer.get_recent_logs()
+    return [log for log in all_logs if log.get("trace_id") == trace_id]
 

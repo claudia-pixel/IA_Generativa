@@ -95,13 +95,14 @@ class EcoMarketAgent:
         return self.initialized and self.retriever is not None
     
     @traceable(name="EcoMarketAgent.process_query")
-    def process_query(self, question: str, enable_logging: bool = False) -> str:
+    def process_query(self, question: str, enable_logging: bool = False, trace_id: str = None) -> str:
         """
         Procesar una consulta del usuario usando herramientas
         
         Args:
             question (str): Pregunta del usuario
             enable_logging (bool): Habilitar logging detallado
+            trace_id (str): ID del trace para agrupar logs
             
         Returns:
             str: Respuesta del agente
@@ -117,17 +118,18 @@ class EcoMarketAgent:
                 operation="AGENT_PROCESSING",
                 message=f"Procesando consulta tipo: {query_info['category']}",
                 metadata=query_info,
-                level="INFO"
+                level="INFO",
+                trace_id=trace_id
             )
             
             # Paso 2: Detectar si es consulta de ticket/servicio
             if self._is_ticket_query(question, query_info):
-                response = self._handle_ticket_query(question, query_info, enable_logging)
+                response = self._handle_ticket_query(question, query_info, enable_logging, trace_id)
                 return response
             
             # Paso 3: Detectar si es consulta de producto
             if self._is_product_query(question, query_info):
-                response = self._handle_product_query(question, query_info, enable_logging)
+                response = self._handle_product_query(question, query_info, enable_logging, trace_id)
                 return response
             
             # Paso 4: Si es una consulta de lista, detectar si es sobre productos
@@ -135,13 +137,13 @@ class EcoMarketAgent:
                 # Verificar si es lista de productos o lista general
                 if self._is_product_list_query(question, query_info):
                     # Usar herramienta de verificación de productos
-                    response = self._handle_product_query(question, query_info, enable_logging)
+                    response = self._handle_product_query(question, query_info, enable_logging, trace_id)
                 else:
                     # Usar estrategia de lista general (RAG estándar)
-                    response = self._handle_list_query(question, query_info, enable_logging)
+                    response = self._handle_list_query(question, query_info, enable_logging, trace_id)
             else:
                 # Paso 4: Usar estrategia estándar con herramientas
-                response = self._handle_standard_query(question, query_info, enable_logging)
+                response = self._handle_standard_query(question, query_info, enable_logging, trace_id)
             
             return response
             
@@ -150,12 +152,14 @@ class EcoMarketAgent:
                 operation="RAG_ERROR",
                 message=f"Error procesando consulta: {str(e)}",
                 metadata={"question": question[:100], "error": str(e)},
-                level="ERROR"
+                level="ERROR",
+                trace_id=trace_id
             )
             
             return self._get_error_response(str(e))
     
-    def _handle_list_query(self, question: str, query_info: dict, enable_logging: bool) -> str:
+    @traceable(name="RAGAgent._handle_list_query")
+    def _handle_list_query(self, question: str, query_info: dict, enable_logging: bool, trace_id: str = None) -> str:
         """Manejar consultas que solicitan listas de productos"""
         # Generar múltiples variaciones de la consulta
         queries = self.query_processor.generate_search_queries(question)
@@ -175,7 +179,8 @@ class EcoMarketAgent:
         
         return response
     
-    def _handle_standard_query(self, question: str, query_info: dict, enable_logging: bool) -> str:
+    @traceable(name="RAGAgent._handle_standard_query")
+    def _handle_standard_query(self, question: str, query_info: dict, enable_logging: bool, trace_id: str = None) -> str:
         """Manejar consultas estándar"""
         # Buscar documentos relevantes
         search_results = self.document_retriever.search(question)
@@ -227,7 +232,8 @@ class EcoMarketAgent:
         
         return is_product_category or has_product_keywords
     
-    def _handle_product_query(self, question: str, query_info: dict, enable_logging: bool) -> str:
+    @traceable(name="RAGAgent._handle_product_query")
+    def _handle_product_query(self, question: str, query_info: dict, enable_logging: bool, trace_id: str = None) -> str:
         """Manejar consultas de productos usando la herramienta de verificación"""
         try:
             question_lower = question.lower()
@@ -579,7 +585,8 @@ No hay productos disponibles en nuestro inventario actual.
         
         return is_ticket_category
     
-    def _handle_ticket_query(self, question: str, query_info: dict, enable_logging: bool) -> str:
+    @traceable(name="RAGAgent._handle_ticket_query")
+    def _handle_ticket_query(self, question: str, query_info: dict, enable_logging: bool, trace_id: str = None) -> str:
         """Manejar consultas que requieren crear o consultar tickets"""
         import re
         
@@ -650,7 +657,8 @@ No hay productos disponibles en nuestro inventario actual.
             tracer.log(
                 operation="TICKET_QUERY_ERROR",
                 message=f"Error manejando consulta de ticket: {str(e)}",
-                level="ERROR"
+                level="ERROR",
+                trace_id=trace_id
             )
             return self._get_error_response(str(e))
     
@@ -771,7 +779,8 @@ Si necesita información sobre productos, pregúnteme por ellos.
         except Exception as e:
             return "Lo siento, necesito más información. Por favor, proporcione su email y detalles del caso."
     
-    def _handle_consulta_ticket(self, question: str, query_info: dict) -> str:
+    @traceable(name="RAGAgent._handle_consulta_ticket")
+    def _handle_consulta_ticket(self, question: str, query_info: dict, trace_id: str = None) -> str:
         """Manejar consultas de tickets existentes"""
         try:
             import re
@@ -861,7 +870,8 @@ Se encontraron {total} ticket(s):
             tracer.log(
                 operation="CONSULT_TICKET_ERROR",
                 message=f"Error consultando ticket: {str(e)}",
-                level="ERROR"
+                level="ERROR",
+                trace_id=trace_id
             )
             return "Lo siento, hubo un error al consultar los tickets."
     

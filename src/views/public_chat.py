@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from models.db import create_message, get_messages
-from agents.rag_agent import get_agent
+from agents.intelligent_agent import get_intelligent_agent
 from utils.theme_utils import apply_theme_with_header
 
 def stream_response(response):
@@ -67,8 +67,8 @@ def public_chat():
             st.markdown(prompt)
         
         try:
-            # Usar el agente RAG
-            agent = get_agent()
+            # Usar el agente inteligente (Intelligent Agent es el punto de entrada)
+            agent = get_intelligent_agent()
             response = agent.process_query(prompt, enable_logging=False)
         except Exception as e:
             response = """

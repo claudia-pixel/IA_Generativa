@@ -416,7 +416,6 @@ def load_retriever(collection_name, score_threshold: float = 0.3):
     return retriever
 
 
-@TRACEABLE_DECORATOR
 def generate_answer_from_context(retriever, question: str, enable_logging: bool = False):
     """
     Ask a question and get an answer based on the provided context.

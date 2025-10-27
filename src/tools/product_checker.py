@@ -862,7 +862,6 @@ def _get_all_products(vectordb) -> Dict[str, Any]:
 
 
 # Helper function para usar directamente desde el agente
-@TRACEABLE(name="check_product")
 def check_product(product_name: str, umbral: float = 0.7) -> Dict[str, Any]:
     """
     Helper simplificado para verificar un producto
