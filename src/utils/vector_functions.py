@@ -1,5 +1,7 @@
 import os
 import glob
+import time
+import traceback
 import pandas as pd
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
@@ -30,6 +32,13 @@ except ImportError:
             return func
         return decorator
     TRACEABLE_DECORATOR = traceable
+
+# Importar módulos locales
+from utils.tracing import tracer, log_retrieval, log_generation
+try:
+    from templates.agent_prompts import get_rag_prompt_template
+except ImportError:
+    get_rag_prompt_template = None
 
 env = environ.Env()
 # reading .env file
@@ -420,28 +429,18 @@ def generate_answer_from_context(retriever, question: str, enable_logging: bool 
     Returns:
         str: The answer to the question based on the retrieved context.
     """
-    import time
-    from utils.tracing import tracer, log_retrieval, log_generation
-    
     start_time = time.time()
     
-    # Define the improved message template for the prompt
-    message = """
-    Eres un asistente útil para EcoMarket. Responde la pregunta del usuario usando ÚNICAMENTE la información proporcionada en el contexto.
-
-    REGLAS IMPORTANTES:
-    1. Usa ÚNICAMENTE la información del contexto proporcionado
-    2. NO inventes ni hagas suposiciones sobre información no presente
-    3. Si el contexto no contiene la información específica, di "No encontré esa información específica en nuestros documentos"
-    4. Sé preciso con números, emails y teléfonos
-    5. Si encuentras información de contacto, úsala exactamente como está escrita en el contexto
-    6. Si no estás seguro de algo, es mejor decir que no tienes esa información
-
+    # Importar y usar el template del sistema
+    if get_rag_prompt_template:
+        message = get_rag_prompt_template()
+    else:
+        # Fallback si no se puede importar
+        message = """
+    Eres un asistente útil. Responde usando ÚNICAMENTE la información del contexto.
+    
     Pregunta: {question}
-
-    Contexto:
-    {context}
-
+    Contexto: {context}
     Respuesta:
     """
 
@@ -573,7 +572,6 @@ def load_sample_documents():
                     
             except Exception as e:
                 print(f"    ❌ Error loading {os.path.basename(file_path)}: {str(e)}")
-                import traceback
                 traceback.print_exc()
     
     print(f"📊 Total sample documents loaded: {len(all_documents)}")
@@ -665,7 +663,6 @@ def initialize_sample_collection():
                 
     except Exception as e:
         print(f"❌ Error initializing sample collection: {str(e)}")
-        import traceback
         traceback.print_exc()
         return False
 
@@ -674,9 +671,15 @@ def register_sample_documents_in_db():
     """
     Register sample documents in the database so they appear in admin panel.
     """
+    # Import condicional de models.db para evitar dependencia circular
     try:
-        from models.db import create_source
-        
+        from models.db import create_source, connect_db
+    except ImportError:
+        # Si no se puede importar, retornar sin hacer nada
+        print("⚠️  No se pudo importar models.db")
+        return
+    
+    try:
         base_dir = get_base_dir()
         sample_dir = os.path.join(base_dir, "static/sample_documents")
         if not os.path.exists(sample_dir):
@@ -693,7 +696,6 @@ def register_sample_documents_in_db():
                 filename = os.path.basename(file_path)
                 
                 # Check if document is already registered
-                from models.db import connect_db
                 conn = connect_db()
                 cursor = conn.cursor()
                 cursor.execute(

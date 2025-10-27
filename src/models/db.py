@@ -77,6 +77,34 @@ def init_database():
         )
     """)
     
+    # Create tickets table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tickets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ticket_number TEXT UNIQUE NOT NULL,
+            tipo TEXT NOT NULL,
+            estado TEXT DEFAULT 'abierto',
+            prioridad TEXT DEFAULT 'normal',
+            titulo TEXT NOT NULL,
+            descripcion TEXT,
+            cliente_email TEXT,
+            cliente_nombre TEXT,
+            cliente_telefono TEXT,
+            producto_id TEXT,
+            factura_numero TEXT,
+            fecha_devolucion TEXT,
+            motivo_devolucion TEXT,
+            numero_seguimiento TEXT,
+            guia_seguimiento TEXT,
+            cantidad INTEGER DEFAULT 1,
+            total DECIMAL(10, 2),
+            notas TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            resolved_at DATETIME
+        )
+    """)
+    
     # Initialize default chats if they don't exist
     cursor.execute("SELECT COUNT(*) FROM chat")
     if cursor.fetchone()[0] == 0:
@@ -240,6 +268,167 @@ def delete_messages(chat_id):
     cursor.execute("DELETE FROM messages WHERE chat_id = ?", (chat_id,))
     conn.commit()
     conn.close()
+
+# CRUD Operations for 'tickets' table
+def generate_ticket_number():
+    """Generate a unique ticket number"""
+    import uuid
+    timestamp = int(time.time())
+    unique_id = str(uuid.uuid4())[:8].upper()
+    return f"TKT-{timestamp}-{unique_id}"
+
+def create_ticket(
+    tipo: str,
+    titulo: str,
+    descripcion: str = None,
+    cliente_email: str = None,
+    cliente_nombre: str = None,
+    cliente_telefono: str = None,
+    producto_id: str = None,
+    factura_numero: str = None,
+    cantidad: int = 1,
+    total: float = None,
+    prioridad: str = "normal",
+    estado: str = "abierto",
+    **kwargs
+):
+    """Create a new ticket"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    # Generate unique ticket number
+    ticket_number = generate_ticket_number()
+    
+    # Prepare all fields
+    fields = {
+        "ticket_number": ticket_number,
+        "tipo": tipo,
+        "estado": estado,
+        "prioridad": prioridad,
+        "titulo": titulo,
+        "descripcion": descripcion,
+        "cliente_email": cliente_email,
+        "cliente_nombre": cliente_nombre,
+        "cliente_telefono": cliente_telefono,
+        "producto_id": producto_id,
+        "factura_numero": factura_numero,
+        "cantidad": cantidad,
+        "total": total,
+        "fecha_devolucion": kwargs.get("fecha_devolucion"),
+        "motivo_devolucion": kwargs.get("motivo_devolucion"),
+        "numero_seguimiento": kwargs.get("numero_seguimiento"),
+        "guia_seguimiento": kwargs.get("guia_seguimiento"),
+        "notas": kwargs.get("notas")
+    }
+    
+    # Filter out None values and build query
+    filtered_fields = {k: v for k, v in fields.items() if v is not None}
+    columns = ", ".join(filtered_fields.keys())
+    placeholders = ", ".join(["?"] * len(filtered_fields))
+    values = tuple(filtered_fields.values())
+    
+    cursor.execute(f"INSERT INTO tickets ({columns}) VALUES ({placeholders})", values)
+    ticket_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return {"id": ticket_id, "ticket_number": ticket_number}
+
+def get_ticket(ticket_number):
+    """Get a ticket by ticket number"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tickets WHERE ticket_number = ?", (ticket_number,))
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        columns = [desc[0] for desc in cursor.description]
+        return dict(zip(columns, result))
+    return None
+
+def get_ticket_by_id(ticket_id):
+    """Get a ticket by ID"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tickets WHERE id = ?", (ticket_id,))
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        columns = [desc[0] for desc in cursor.description]
+        return dict(zip(columns, result))
+    return None
+
+def list_tickets(tipo=None, estado=None, cliente_email=None):
+    """List tickets with optional filters"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    query = "SELECT * FROM tickets WHERE 1=1"
+    params = []
+    
+    if tipo:
+        query += " AND tipo = ?"
+        params.append(tipo)
+    
+    if estado:
+        query += " AND estado = ?"
+        params.append(estado)
+    
+    if cliente_email:
+        query += " AND cliente_email = ?"
+        params.append(cliente_email)
+    
+    query += " ORDER BY created_at DESC"
+    
+    cursor.execute(query, tuple(params))
+    results = cursor.fetchall()
+    conn.close()
+    
+    # Convert to list of dicts
+    columns = [desc[0] for desc in cursor.description]
+    return [dict(zip(columns, row)) for row in results]
+
+def update_ticket(ticket_number, **kwargs):
+    """Update a ticket"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    
+    # Filter valid fields
+    valid_fields = [
+        "tipo", "estado", "prioridad", "titulo", "descripcion",
+        "cliente_email", "cliente_nombre", "cliente_telefono",
+        "producto_id", "factura_numero", "cantidad", "total",
+        "fecha_devolucion", "motivo_devolucion", "numero_seguimiento",
+        "guia_seguimiento", "notas", "resolved_at"
+    ]
+    
+    filtered_updates = {k: v for k, v in kwargs.items() if k in valid_fields and v is not None}
+    
+    if not filtered_updates:
+        conn.close()
+        return False
+    
+    # Add updated_at
+    filtered_updates["updated_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    
+    set_clause = ", ".join([f"{k} = ?" for k in filtered_updates.keys()])
+    values = list(filtered_updates.values()) + [ticket_number]
+    
+    cursor.execute(f"UPDATE tickets SET {set_clause} WHERE ticket_number = ?", values)
+    conn.commit()
+    conn.close()
+    return cursor.rowcount > 0
+
+def delete_ticket(ticket_number):
+    """Delete a ticket"""
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM tickets WHERE ticket_number = ?", (ticket_number,))
+    conn.commit()
+    deleted = cursor.rowcount > 0
+    conn.close()
+    return deleted
 
 if __name__ == "__main__":
     init_database()

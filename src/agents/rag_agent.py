@@ -20,6 +20,11 @@ from utils.tracing import tracer, log_retrieval, log_generation
 from tools.document_retriever import DocumentRetriever
 from tools.query_processor import QueryProcessor
 from tools.product_checker import check_product_existence
+from tools.ticket_manager import (
+    crear_ticket_devolucion, crear_ticket_compra, generar_guia_de_seguimiento,
+    consulta_seguimiento, obtener_factura, crear_ticket_queja_reclamo,
+    generar_etiqueta_devolucion, consultar_ticket, extraer_info_cliente
+)
 
 # Importar traceable para unificar trazas
 try:
@@ -115,12 +120,17 @@ class EcoMarketAgent:
                 level="INFO"
             )
             
-            # Paso 2: Detectar si es consulta de producto
+            # Paso 2: Detectar si es consulta de ticket/servicio
+            if self._is_ticket_query(question, query_info):
+                response = self._handle_ticket_query(question, query_info, enable_logging)
+                return response
+            
+            # Paso 3: Detectar si es consulta de producto
             if self._is_product_query(question, query_info):
                 response = self._handle_product_query(question, query_info, enable_logging)
                 return response
             
-            # Paso 3: Si es una consulta de lista, detectar si es sobre productos
+            # Paso 4: Si es una consulta de lista, detectar si es sobre productos
             if query_info['is_list_query']:
                 # Verificar si es lista de productos o lista general
                 if self._is_product_list_query(question, query_info):
@@ -515,6 +525,361 @@ No hay productos disponibles en nuestro inventario actual.
         response += "\n💡 *¿Te interesa algún producto en particular? Pregúntame por más detalles*"
         
         return response
+    
+    def _is_ticket_query(self, question: str, query_info: dict) -> bool:
+        """Detectar si la consulta requiere crear o consultar un ticket"""
+        import re
+        
+        question_lower = question.lower()
+        
+        # DETECCIÓN PRIORITARIA: Patrón de número de ticket (TKT-XXXXX-XXXX)
+        ticket_number_pattern = r'TKT[-]\d+[-][A-Z0-9]+'
+        if re.search(ticket_number_pattern, question, re.IGNORECASE):
+            return True
+        
+        # DETECCIÓN: Palabras clave de consulta de ticket existente
+        consult_ticket_keywords = [
+            "consultar", "ver", "mostrar", "buscar", "encontrar",
+            "estado del", "información del", "datos del",
+            "mi ticket", "mis tickets", "historial",
+            "qué estado", "está mi ticket"
+        ]
+        has_consult_keywords = any(keyword in question_lower for keyword in consult_ticket_keywords)
+        
+        # Si menciona "ticket" con palabras de consulta, es consulta de ticket
+        if "ticket" in question_lower and has_consult_keywords:
+            return True
+        
+        # DETECCIÓN: Palabras clave de creación de ticket
+        create_ticket_keywords = [
+            "devolver", "devolución", "retornar", "devolver producto",
+            "reclamo", "queja", "felicitación", "felicitacion",
+            "solicitar devolución", "hacer devolución", "procesar devolución",
+            "guía de seguimiento", "seguimiento de pedido", "rastrear pedido",
+            "consultar factura", "obtener factura", "solicitar factura",
+            "hacer pedido", "comprar productos", "realizar compra"
+        ]
+        has_create_keywords = any(keyword in question_lower for keyword in create_ticket_keywords)
+        
+        # DETECCIÓN: Verbos de acción que indican creación
+        action_verbs = ["devolver", "solicitar", "hacer", "comprar", "pedir", "obtener"]
+        has_action_verb = any(verb in question_lower for verb in action_verbs)
+        has_ticket_context = (
+            "producto defectuoso" in question_lower or
+            "producto roto" in question_lower or
+            "necesito devolver" in question_lower or
+            "quiero devolver" in question_lower
+        )
+        
+        if has_create_keywords or (has_action_verb and has_ticket_context):
+            return True
+        
+        # Detectar categorías específicas (menos prioridad)
+        is_ticket_category = query_info.get('category') in ['devolución', 'envío', 'contacto']
+        
+        return is_ticket_category
+    
+    def _handle_ticket_query(self, question: str, query_info: dict, enable_logging: bool) -> str:
+        """Manejar consultas que requieren crear o consultar tickets"""
+        import re
+        
+        question_lower = question.lower()
+        
+        try:
+            # DETECCIÓN INTELIGENTE DE INTENCIÓN
+            # Prioridad 1: ¿Tiene número de ticket en el texto?
+            ticket_number_pattern = r'TKT[-]\d+[-][A-Z0-9]+'
+            ticket_match = re.search(ticket_number_pattern, question, re.IGNORECASE)
+            
+            if ticket_match:
+                # Hay número de ticket → es consulta, no creación
+                return self._handle_consulta_ticket(question, query_info)
+            
+            # Prioridad 2: ¿Palabras clave explícitas de consulta?
+            consult_keywords = [
+                "consultar", "ver", "mostrar", "buscar", "encontrar",
+                "estado del", "información del", "datos del",
+                "mi ticket", "mis tickets", "historial de",
+                "qué estado", "está mi ticket"
+            ]
+            is_consultation = any(keyword in question_lower for keyword in consult_keywords) and "ticket" in question_lower
+            
+            if is_consultation:
+                return self._handle_consulta_ticket(question, query_info)
+            
+            # Prioridad 3: Palabras clave de creación de ticket
+            creation_keywords = [
+                "devolver", "devolución", "retornar",
+                "necesito devolver", "quiero devolver", "solicitar devolución",
+                "reclamo", "queja", "felicitación"
+            ]
+            is_creation = any(keyword in question_lower for keyword in creation_keywords)
+            
+            if not is_creation:
+                # No es claro si es creación o consulta, intentar ambos
+                # Pero primero verificar si menciona "ticket" sin verbo de acción
+                if "ticket" in question_lower:
+                    # Asumir que es consulta si no hay verbo de acción claro
+                    return self._handle_consulta_ticket(question, query_info)
+            
+            # Si llegamos aquí, es creación de ticket
+            # Extraer información del cliente
+            cliente_info = extraer_info_cliente(question)
+            
+            # Detectar tipo de ticket
+            if any(word in question_lower for word in ["devolver", "devolución", "retornar"]):
+                return self._handle_devolucion_ticket(question, cliente_info, query_info)
+            
+            elif any(word in question_lower for word in ["seguimiento", "rastrear", "donde está"]):
+                return self._handle_seguimiento_query(question, cliente_info, query_info)
+            
+            elif any(word in question_lower for word in ["factura", "recibo"]):
+                return self._handle_factura_query(question, cliente_info, query_info)
+            
+            elif any(word in question_lower for word in ["comprar", "pedir", "ordenar", "quiero"]):
+                return self._handle_compra_ticket(question, cliente_info, query_info)
+            
+            elif any(word in question_lower for word in ["reclamo", "queja", "felicitación"]):
+                return self._handle_queja_ticket(question, cliente_info, query_info)
+            
+            else:
+                # Respuesta genérica
+                return self._get_ticket_help_response()
+                
+        except Exception as e:
+            tracer.log(
+                operation="TICKET_QUERY_ERROR",
+                message=f"Error manejando consulta de ticket: {str(e)}",
+                level="ERROR"
+            )
+            return self._get_error_response(str(e))
+    
+    def _handle_devolucion_ticket(self, question: str, cliente_info: dict, query_info: dict) -> str:
+        """Manejar solicitudes de devolución"""
+        try:
+            # Extraer información del producto y factura
+            import re
+            
+            # Buscar número de factura
+            factura_match = re.search(r'factura\s*[:#]?\s*(\w+)', question, re.IGNORECASE)
+            factura_numero = factura_match.group(1) if factura_match else None
+            
+            # Buscar producto
+            producto_match = re.search(r'producto\s*(?:es)?\s*[:]?\s*([\w\s]+)', question, re.IGNORECASE)
+            producto_id = producto_match.group(1).strip() if producto_match else "No especificado"
+            
+            # Motivo básico
+            motivo = "Solicitud de devolución"
+            if "defectuoso" in question or "roto" in question or "dañado" in question:
+                motivo = "Producto defectuoso o dañado"
+            elif "talla" in question or "tamaño" in question:
+                motivo = "Problema de talla o tamaño"
+            elif "no me gustó" in question or "no me gusta" in question:
+                motivo = "No quedó conforme con el producto"
+            
+            # Intentar crear ticket
+            result = crear_ticket_devolucion(
+                cliente_email=cliente_info.get('email') or "cliente@ejemplo.com",
+                cliente_nombre=cliente_info.get('nombre') or "Cliente",
+                producto_id=producto_id,
+                factura_numero=factura_numero,
+                motivo_devolucion=motivo,
+                cliente_telefono=cliente_info.get('telefono'),
+                notas=f"Consulta: {question}"
+            )
+            
+            if result.get('exito'):
+                return result.get('mensaje', 'Ticket creado exitosamente')
+            else:
+                return f"Hubo un problema: {result.get('mensaje')}"
+                
+        except Exception as e:
+            return "Lo siento, necesito más información. Por favor, proporcione: su email, número de factura y producto a devolver."
+    
+    def _handle_seguimiento_query(self, question: str, cliente_info: dict, query_info: dict) -> str:
+        """Manejar consultas de seguimiento"""
+        try:
+            import re
+            
+            # Buscar número de seguimiento
+            seguimiento_match = re.search(r'(?:seguimiento|guía|número)\s*[:#]?\s*(\w+)', question, re.IGNORECASE)
+            numero_seguimiento = seguimiento_match.group(1) if seguimiento_match else None
+            
+            if numero_seguimiento:
+                result = consulta_seguimiento(numero_seguimiento=numero_seguimiento)
+                return result.get('mensaje', 'No se encontró información de seguimiento')
+            else:
+                return "Para consultar el seguimiento, necesito el número de guía. Por favor, proporciónelo."
+                
+        except Exception as e:
+            return "Lo siento, no pude consultar el seguimiento."
+    
+    def _handle_factura_query(self, question: str, cliente_info: dict, query_info: dict) -> str:
+        """Manejar solicitudes de factura"""
+        try:
+            import re
+            
+            factura_match = re.search(r'factura\s*[:#]?\s*(\w+)', question, re.IGNORECASE)
+            factura_numero = factura_match.group(1) if factura_match else None
+            
+            result = obtener_factura(
+                factura_numero=factura_numero,
+                cliente_email=cliente_info.get('email')
+            )
+            
+            return result.get('mensaje', 'No se encontró información')
+            
+        except Exception as e:
+            return "Lo siento, necesito más información. Por favor, proporcione su email y número de factura."
+    
+    def _handle_compra_ticket(self, question: str, cliente_info: dict, query_info: dict) -> str:
+        """Manejar solicitudes de compra"""
+        # Para compras, primero verificamos productos y luego sugerimos proceso
+        return """
+🛒 **Proceso de Compra**
+
+Para realizar una compra, por favor:
+1. Identifique los productos que desea comprar
+2. Proporcione su información de contacto (email, teléfono, nombre)
+3. Un representante de ventas se comunicará con usted
+
+Si necesita información sobre productos, pregúnteme por ellos.
+"""
+    
+    def _handle_queja_ticket(self, question: str, cliente_info: dict, query_info: dict) -> str:
+        """Manejar quejas, reclamos o felicitaciones"""
+        try:
+            question_lower = question.lower()
+            
+            if "queja" in question_lower or "reclamo" in question_lower:
+                tipo = "reclamo"
+            elif "felicitación" in question_lower or "felicitacion" in question_lower or "me gustó" in question_lower:
+                tipo = "felicitacion"
+            else:
+                tipo = "queja"
+            
+            result = crear_ticket_queja_reclamo(
+                cliente_email=cliente_info.get('email') or "cliente@ejemplo.com",
+                cliente_nombre=cliente_info.get('nombre') or "Cliente",
+                tipo_queja=tipo,
+                descripcion=question,
+                cliente_telefono=cliente_info.get('telefono')
+            )
+            
+            return result.get('mensaje', 'Ticket creado exitosamente')
+            
+        except Exception as e:
+            return "Lo siento, necesito más información. Por favor, proporcione su email y detalles del caso."
+    
+    def _handle_consulta_ticket(self, question: str, query_info: dict) -> str:
+        """Manejar consultas de tickets existentes"""
+        try:
+            import re
+            
+            question_lower = question.lower()
+            cliente_info = extraer_info_cliente(question)
+            
+            # Buscar número de ticket en la consulta
+            ticket_match = re.search(r'ticket\s*(?:número|numero|#)?\s*[:]?\s*([A-Z0-9\-]+)', question, re.IGNORECASE)
+            ticket_number = ticket_match.group(1) if ticket_match else None
+            
+            # Extraer email del cliente
+            cliente_email = cliente_info.get('email')
+            
+            # Consultar tickets
+            if ticket_number:
+                # Consultar ticket específico
+                result = consultar_ticket(ticket_number=ticket_number)
+            elif cliente_email:
+                # Consultar tickets del cliente por email
+                result = consultar_ticket(cliente_email=cliente_email)
+            else:
+                return """
+🔍 **Consulta de Ticket**
+
+Para consultar tus tickets, necesito:
+- Tu número de ticket, O
+- Tu email registrado
+
+Ejemplos:
+- "Consultar mi ticket TKT-1234567890-ABCD1234"
+- "Mis tickets con email cliente@ejemplo.com"
+"""
+            
+            if not result.get('exito'):
+                return f"""
+❌ **No se encontraron tickets**
+
+{result.get('mensaje', 'No se encontraron tickets')}
+
+Por favor, verifica:
+- El número de ticket
+- Tu email registrado
+"""
+            
+            # Formatear respuesta
+            tickets = result.get('tickets', [])
+            total = result.get('total', 0)
+            
+            if total == 0:
+                return "No se encontraron tickets."
+            
+            # Construir respuesta formateada
+            response = f"""
+📋 **Consulta de Tickets**
+
+Se encontraron {total} ticket(s):
+
+"""
+            
+            for idx, ticket in enumerate(tickets, 1):
+                response += f"""
+**Ticket #{idx}**
+- **Número**: {ticket.get('numero', 'N/A')}
+- **Tipo**: {ticket.get('tipo', 'N/A')}
+- **Estado**: {ticket.get('estado', 'N/A')}
+- **Prioridad**: {ticket.get('prioridad', 'N/A')}
+- **Título**: {ticket.get('titulo', 'N/A')}
+- **Fecha**: {ticket.get('fecha_creacion', 'N/A')}
+"""
+                
+                # Agregar información adicional según el tipo
+                if ticket.get('producto_id') != 'N/A':
+                    response += f"- **Producto**: {ticket.get('producto_id')}\n"
+                
+                if ticket.get('factura_numero') != 'N/A':
+                    response += f"- **Factura**: {ticket.get('factura_numero')}\n"
+                
+                if ticket.get('numero_seguimiento') != 'N/A':
+                    response += f"- **Número Seguimiento**: {ticket.get('numero_seguimiento')}\n"
+                
+                response += "\n"
+            
+            return response
+            
+        except Exception as e:
+            tracer.log(
+                operation="CONSULT_TICKET_ERROR",
+                message=f"Error consultando ticket: {str(e)}",
+                level="ERROR"
+            )
+            return "Lo siento, hubo un error al consultar los tickets."
+    
+    def _get_ticket_help_response(self) -> str:
+        """Respuesta de ayuda para tickets"""
+        return """
+📋 **Atención al Cliente**
+
+Puedo ayudarte con:
+- ✅ Devoluciones de productos
+- ✅ Consulta de seguimiento de pedidos
+- ✅ Obtención de facturas
+- ✅ Quejas, reclamos y felicitaciones
+- ✅ Gestión de compras
+- ✅ Consultar estado de tus tickets
+
+¿En qué puedo asistirte hoy?
+"""
     
     def _get_fallback_response(self) -> str:
         """Obtener respuesta de respaldo cuando el agente no está disponible"""
