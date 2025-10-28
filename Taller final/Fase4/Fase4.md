@@ -146,7 +146,7 @@ Arquitectura del Sistema EcoMarket
 
 El diagrama que creamos sigue el modelo C4, un estándar de la industria para documentación de arquitecturas de software. El nivel de contexto muestra el sistema en su entorno, identificando actores externos y sistemas con los que interactúa. El nivel de contenedores descompone el sistema en sus aplicaciones y almacenamiento de datos principales. El nivel de componentes detalla la estructura interna de cada contenedor, mostrando cómo se organiza la lógica en módulos cohesivos.
 
-![](data:image/png;base64...)
+![](https://github.com/claudia-pixel/IA_Generativa/blob/main/Taller%20final/Fase4/N1.png))
 
 ### Diagrama de Flujo de Proceso
 
