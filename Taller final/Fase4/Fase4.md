@@ -160,8 +160,4 @@ El diagrama muestra claramente la bifurcación inicial entre consultas generales
 
 ![](data:image/png;base64...)
 
-Flujo del Proceso de Devolución
 
-El diagrama muestra claramente la bifurcación inicial entre consultas generales que activan RAG y solicitudes de acción que invocan herramientas. Ilustra cómo cada herramienta tiene su propia lógica de validación y procesamiento, y cómo todas las rutas eventualmente convergen en la generación de una respuesta formateada que combina resultados de herramientas con contexto recuperado mediante RAG.
-
-![](data:image/png;base64...)
