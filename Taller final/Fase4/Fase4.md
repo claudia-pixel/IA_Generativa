@@ -152,7 +152,7 @@ El diagrama que creamos sigue el modelo C4, un estándar de la industria para do
 
 Creamos un diagrama detallado que muestra el flujo completo desde que un usuario envía una consulta hasta que recibe una respuesta. Este diagrama ilustra todas las decisiones que toma el agente, las herramientas que puede invocar, y cómo convergen los diferentes caminos para generar la respuesta final.
 
-![]((https://github.com/claudia-pixel/IA_Generativa/blob/main/Taller%20final/Fase4/Contexto.png))
+![](https://github.com/claudia-pixel/IA_Generativa/blob/main/Taller%20final/Fase4/Contexto.png)
 
 Flujo del Proceso de Devolución
 
