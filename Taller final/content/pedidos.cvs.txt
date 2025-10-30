@@ -1,5 +1,0 @@
-numero_pedido,cliente,producto,fecha_compra,cantidad
-ECO-1001,Ana Gómez,Botella Reutilizable de Acero Inoxidable,2025-09-20,2
-ECO-1002,Carlos Ruiz,Cepillo de Bambú para Dientes,2025-10-05,4
-ECO-1003,Luis Torres,Cargador Solar Portátil,2025-09-15,1
-ECO-1004,María Pérez,Cuaderno Reciclado (100 páginas),2025-10-02,3
