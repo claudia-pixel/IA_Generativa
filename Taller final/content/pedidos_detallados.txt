@@ -1,0 +1,62 @@
+CATÁLOGO DE PEDIDOS - ECOMARKET
+================================================
+
+PEDIDO: ECO-1001
+Cliente: Ana Gómez
+Producto: Botella Reutilizable de Acero Inoxidable
+Fecha de Compra: 20 de septiembre de 2025
+Cantidad: 2 unidades
+Precio Unitario: $25.00
+Total: $50.00
+Estado: Con solicitud de devolución activa (ID: 1001)
+Motivo de devolución: Defectuosa en la tapa
+Días desde compra: 38 días
+Elegibilidad: ELEGIBLE (producto defectuoso, dentro del período de 7 días desde recepción estimada)
+
+---
+
+PEDIDO: ECO-1002
+Cliente: Carlos Ruiz
+Producto: Cepillo de Bambú para Dientes
+Fecha de Compra: 5 de octubre de 2025
+Cantidad: 4 unidades
+Precio Unitario: $8.50
+Total: $34.00
+Estado: Con solicitud de devolución activa (ID: 1003)
+Motivo de devolución: Defectuoso (cerdas sueltas)
+Días desde compra: 23 días
+Elegibilidad: ELEGIBLE (producto defectuoso, dentro del período válido)
+
+---
+
+PEDIDO: ECO-1003
+Cliente: Luis Torres
+Producto: Cargador Solar Portátil
+Fecha de Compra: 15 de septiembre de 2025
+Cantidad: 1 unidad
+Precio Unitario: $45.00
+Total: $45.00
+Estado: Sin solicitudes de devolución
+Días desde compra: 43 días
+
+---
+
+PEDIDO: ECO-1004
+Cliente: María Pérez
+Producto: Cuaderno Reciclado (100 páginas)
+Fecha de Compra: 2 de octubre de 2025
+Cantidad: 3 unidades
+Precio Unitario: $6.00
+Total: $18.00
+Estado: Con solicitud de devolución activa (ID: 1006)
+Motivo de devolución: Error en el pedido
+Días desde compra: 26 días
+Elegibilidad: ELEGIBLE (error en el pedido, motivo válido)
+
+================================================
+RESUMEN DE ESTADÍSTICAS:
+- Total de pedidos registrados: 4
+- Pedidos con devoluciones activas: 3
+- Pedidos sin incidencias: 1
+- Tasa de devolución: 75%
+================================================

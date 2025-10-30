@@ -1,0 +1,89 @@
+REGISTRO DE SOLICITUDES DE DEVOLUCIÓN - ECOMARKET
+================================================
+
+SOLICITUD ID: 1001
+Pedido Relacionado: ECO-1001
+Cliente: Ana Gómez
+Producto: Botella Reutilizable de Acero Inoxidable
+Motivo: Defectuosa en la tapa
+Cantidad a devolver: 2 unidades
+Fecha de compra original: 20/09/2025
+Fecha estimada de solicitud: 28/09/2025
+Monto de reembolso estimado: $50.00
+Estado de elegibilidad: ✅ APROBADA
+Política aplicable: Artículo 1 - Productos defectuosos
+Acción recomendada: Reembolso completo por el mismo medio de pago
+Notas: Defecto de fabricación en el mecanismo de cierre de la tapa
+
+---
+
+SOLICITUD ID: 1002
+Pedido Relacionado: NO ENCONTRADO
+Producto: Bolsa de Tela Ecológica Reutilizable
+Motivo: Cambio por color diferente
+Estado de elegibilidad: ⚠️ REQUIERE REVISIÓN
+Política aplicable: Artículo 4 - No se cubren costos de envío en devoluciones voluntarias
+Acción recomendada: Cambio permitido, cliente asume costos de envío
+Notas: Solicitud por preferencia personal, no por defecto
+
+---
+
+SOLICITUD ID: 1003
+Pedido Relacionado: ECO-1002
+Cliente: Carlos Ruiz
+Producto: Cepillo de Bambú para Dientes
+Motivo: Defectuoso (cerdas sueltas)
+Cantidad a devolver: 4 unidades
+Fecha de compra original: 05/10/2025
+Fecha estimada de solicitud: 13/10/2025
+Monto de reembolso estimado: $34.00
+Estado de elegibilidad: ✅ APROBADA
+Política aplicable: Artículo 1 - Productos defectuosos
+Acción recomendada: Reembolso completo o reemplazo
+Notas: Defecto de fabricación en las cerdas del cepillo
+
+---
+
+SOLICITUD ID: 1004
+Pedido Relacionado: NO ENCONTRADO
+Producto: Lámpara Solar para Jardín
+Motivo: No funciona correctamente
+Estado de elegibilidad: ⚠️ REQUIERE VALIDACIÓN DE PEDIDO
+Política aplicable: Artículo 1 - Productos defectuosos
+Acción recomendada: Verificar número de pedido para proceder
+Notas: Posible defecto en panel solar o batería
+
+---
+
+SOLICITUD ID: 1005
+Pedido Relacionado: NO ENCONTRADO
+Producto: Shampoo Sólido Vegano (100g)
+Motivo: No era el aroma solicitado
+Estado de elegibilidad: ⚠️ REQUIERE REVISIÓN
+Política aplicable: Artículo 4 - Devoluciones voluntarias sin cobertura de envío
+Acción recomendada: Cambio permitido, cliente asume costos
+Notas: Error en el despacho o en el pedido original
+
+---
+
+SOLICITUD ID: 1006
+Pedido Relacionado: ECO-1004
+Cliente: María Pérez
+Producto: Cuaderno Reciclado (100 páginas)
+Motivo: Error en el pedido
+Cantidad a devolver: 3 unidades
+Fecha de compra original: 02/10/2025
+Fecha estimada de solicitud: 10/10/2025
+Monto de reembolso estimado: $18.00
+Estado de elegibilidad: ✅ APROBADA
+Política aplicable: Error de EcoMarket en el despacho
+Acción recomendada: Reembolso completo + envío gratuito de producto correcto
+Notas: Error administrativo de EcoMarket
+
+================================================
+RESUMEN DE SOLICITUDES:
+- Total de solicitudes: 6
+- Aprobadas: 3
+- Requieren revisión: 3
+- Monto total en devoluciones: $102.00
+================================================

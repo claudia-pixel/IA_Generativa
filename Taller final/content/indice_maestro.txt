@@ -1,0 +1,81 @@
+ÍNDICE MAESTRO DE REFERENCIAS CRUZADAS - ECOMARKET
+================================================
+
+Este documento contiene las relaciones entre pedidos, solicitudes, 
+productos y políticas para facilitar consultas del sistema RAG.
+
+================================================
+RELACIONES PEDIDO → SOLICITUD → PRODUCTO
+================================================
+
+ECO-1001 → Solicitud 1001 → Botella Reutilizable
+├─ Cliente: Ana Gómez
+├─ Producto: Botella Reutilizable de Acero Inoxidable (PROD-001)
+├─ Cantidad: 2 unidades
+├─ Precio total: $50.00
+├─ Motivo devolución: Defectuosa en la tapa
+├─ Estado: APROBADA
+└─ Política aplicable: Artículo 1 (Productos defectuosos)
+
+ECO-1002 → Solicitud 1003 → Cepillo de Bambú
+├─ Cliente: Carlos Ruiz
+├─ Producto: Cepillo de Bambú para Dientes (PROD-003)
+├─ Cantidad: 4 unidades
+├─ Precio total: $34.00
+├─ Motivo devolución: Defectuoso (cerdas sueltas)
+├─ Estado: APROBADA
+└─ Política aplicable: Artículo 1 (Productos defectuosos)
+
+ECO-1003 → Sin solicitudes → Cargador Solar
+├─ Cliente: Luis Torres
+├─ Producto: Cargador Solar Portátil (PROD-004)
+├─ Cantidad: 1 unidad
+├─ Precio total: $45.00
+└─ Estado: Sin incidencias
+
+ECO-1004 → Solicitud 1006 → Cuaderno Reciclado
+├─ Cliente: María Pérez
+├─ Producto: Cuaderno Reciclado (PROD-007)
+├─ Cantidad: 3 unidades
+├─ Precio total: $18.00
+├─ Motivo devolución: Error en el pedido
+├─ Estado: APROBADA
+└─ Política aplicable: Artículo 3 (Error de EcoMarket)
+
+================================================
+SOLICITUDES SIN PEDIDO ASOCIADO
+================================================
+
+Solicitud 1002 → Bolsa de Tela (PROD-002)
+├─ Motivo: Cambio por color diferente
+├─ Estado: REQUIERE REVISIÓN
+└─ Política aplicable: Artículo 4 (Cambio voluntario)
+
+Solicitud 1004 → Lámpara Solar (PROD-006)
+├─ Motivo: No funciona correctamente
+├─ Estado: REQUIERE VALIDACIÓN DE PEDIDO
+└─ Política aplicable: Artículo 1 (si se confirma defecto)
+
+Solicitud 1005 → Shampoo Sólido (PROD-005)
+├─ Motivo: No era el aroma solicitado
+├─ Estado: REQUIERE REVISIÓN
+└─ Política aplicable: Artículo 3 o 4 (depende de validación)
+
+================================================
+RESUMEN EJECUTIVO
+================================================
+
+Total de pedidos: 4
+Total de solicitudes: 6
+Solicitudes aprobadas: 3
+Solicitudes pendientes: 3
+Monto total en devoluciones: $102.00
+
+Productos con más incidencias:
+1. Cepillo de Bambú (PROD-003) - Requiere revisión de calidad
+2. Botella de Acero (PROD-001) - Problema en tapa
+3. Lámpara Solar (PROD-006) - Fallas funcionales
+
+================================================
+ÚLTIMA ACTUALIZACIÓN: Octubre 2025
+================================================

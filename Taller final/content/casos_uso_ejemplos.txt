@@ -1,0 +1,135 @@
+CASOS DE USO Y EJEMPLOS PRÁCTICOS - ECOMARKET
+================================================
+
+CASO 1: DEVOLUCIÓN POR PRODUCTO DEFECTUOSO (CASO EXITOSO)
+---
+Cliente: Ana Gómez
+Pedido: ECO-1001
+Situación: La tapa de su botella de acero inoxidable no cierra correctamente
+Solicitud: 1001
+
+Proceso:
+1. Ana compró 2 botellas el 20/09/2025
+2. Recibió el producto aproximadamente el 23/09/2025
+3. Detectó el defecto y reportó el 28/09/2025 (dentro de los 7 días)
+4. Presentó número de pedido y fotos del defecto
+5. Solicitud APROBADA
+
+Resultado:
+✅ Reembolso completo: $50.00
+✅ EcoMarket cubre envío de devolución
+✅ Procesamiento en 5-7 días hábiles
+✅ Política aplicada: Artículo 1 (Productos defectuosos)
+
+Lección: Las devoluciones por defectos dentro del período establecido son procesadas sin problema.
+
+---
+
+CASO 2: DEVOLUCIÓN POR ERROR DEL CLIENTE (REQUIERE ACCIÓN DEL CLIENTE)
+---
+Solicitud: 1002
+Situación: Cliente compró bolsa color natural pero prefiere color terracota
+Motivo: Cambio de opinión personal
+
+Proceso:
+1. Solicitud recibida
+2. Producto en perfectas condiciones
+3. Solicitud APROBADA CON CONDICIONES
+
+Resultado:
+⚠️ Cambio permitido
+⚠️ Cliente debe cubrir costos de envío (aprox. $8)
+✅ Política aplicada: Artículo 4 (Cambio voluntario)
+
+Lección: Los cambios por preferencia personal son posibles pero el cliente asume costos adicionales.
+
+---
+
+CASO 3: DEVOLUCIÓN POR DEFECTO DE FABRICACIÓN (CASO EXITOSO)
+---
+Cliente: Carlos Ruiz
+Pedido: ECO-1002
+Situación: Las cerdas del cepillo de bambú se desprenden al usarlo
+Solicitud: 1003
+
+Proceso:
+1. Compra de 4 cepillos el 05/10/2025
+2. Detectó problema en los 4 cepillos (lote defectuoso)
+3. Reportó el 13/10/2025 con evidencia fotográfica
+4. Solicitud APROBADA
+
+Resultado:
+✅ Reembolso completo: $34.00
+✅ Envío gratuito
+✅ Compensación adicional: 10% de descuento en próxima compra
+✅ Política aplicada: Artículo 1 (Productos defectuosos)
+
+Lección: Los problemas de calidad en lotes se tratan con prioridad y compensación adicional.
+
+---
+
+CASO 4: SOLICITUD SIN NÚMERO DE PEDIDO (REQUIERE VALIDACIÓN)
+---
+Solicitud: 1004
+Situación: Cliente reporta lámpara solar que no funciona pero no encuentra número de pedido
+Producto: Lámpara Solar para Jardín
+
+Proceso:
+1. Solicitud recibida sin número de pedido
+2. Cliente proporciona: nombre, email y fecha aproximada de compra
+3. EcoMarket valida en sistema con documento de identidad
+4. Pedido ENCONTRADO Y VALIDADO
+
+Resultado:
+✅ Solicitud procesada después de validación
+✅ Política aplicada: Artículo 6 (Validación sin comprobante)
+✅ Tiempo adicional: 2-3 días para validación
+
+Lección: La falta de comprobante no impide la devolución si se puede validar la transacción.
+
+---
+
+CASO 5: ERROR EN EL DESPACHO (RESPONSABILIDAD DE ECOMARKET)
+---
+Cliente: María Pérez
+Pedido: ECO-1004
+Situación: Solicitó 3 cuadernos A5 rayados pero recibió A4 cuadriculados
+Solicitud: 1006
+
+Proceso:
+1. Cliente reporta error inmediatamente
+2. EcoMarket verifica pedido original
+3. Error confirmado en el despacho
+4. Solicitud APROBADA CON COMPENSACIÓN
+
+Resultado:
+✅ Reembolso completo: $18.00
+✅ Envío gratuito del producto correcto
+✅ Cliente puede conservar producto incorrecto sin cargo adicional
+✅ Política aplicada: Artículo 3 (Error de EcoMarket)
+
+Lección: Los errores de EcoMarket se resuelven con máxima prioridad y compensación generosa.
+
+---
+
+CASO 6: PRODUCTO EQUIVOCADO RECIBIDO (EN REVISIÓN)
+---
+Solicitud: 1005
+Situación: Cliente pidió shampoo aroma lavanda pero recibió menta eucalipto
+Producto: Shampoo Sólido Vegano
+
+Acción requerida:
+1. Validar pedido original para determinar si fue error del cliente o de EcoMarket
+2. Si error de EcoMarket → Aplicar Artículo 3 (cambio gratuito)
+3. Si error del cliente → Aplicar Artículo 4 (cliente cubre envío)
+
+Estado: PENDIENTE DE VALIDACIÓN
+
+---
+
+================================================
+ESTADÍSTICAS DE SATISFACCIÓN:
+- 95% de devoluciones por defecto procesadas en menos de 7 días
+- 88% de clientes satisfechos con el proceso de devolución
+- Tiempo promedio de reembolso: 6 días hábiles
+================================================
