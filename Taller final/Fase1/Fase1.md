@@ -42,7 +42,7 @@ Nuestra implementación asegura que el directorio de destino exista antes de int
 
 ## Diagramas de Arquitectura
 
-![Diagrama de contexto](.Fase1/Contexto.png){width="380"}
+![Diagrama de contexto](.Fase1/Contexto.png)
 
 ![Diagrama de contenedores](./Fase1/N1.png){width="380"}
 
