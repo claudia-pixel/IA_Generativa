@@ -44,13 +44,12 @@ Nuestra implementación asegura que el directorio de destino exista antes de int
 
 ![](https://github.com/claudia-pixel/IA_Generativa/blob/main/Taller%20final/Fase4/Contexto.png)
 
-![Diagrama de contenedores](./Fase1/N1.png){width="380"}
+![](https://github.com/claudia-pixel/IA_Generativa/blob/main/Taller%20final/Fase4/N1.png)
 
 ### Diagrama de Flujo de Proceso
 
 Creamos un diagrama detallado que muestra el flujo completo desde que un usuario envía una consulta hasta que recibe una respuesta. Este diagrama ilustra todas las decisiones que toma el agente, las herramientas que puede invocar, y cómo convergen los diferentes caminos para generar la respuesta final.
-
-![Diagrama de Flujo del Proceso de Devolución](./Fase1/ProcDevol.png)
+![](https://github.com/claudia-pixel/IA_Generativa/blob/main/Taller%20final/Fase4/ProcDevol.png)
 
 El diagrama muestra claramente la bifurcación inicial entre consultas generales que activan RAG y solicitudes de acción que invocan herramientas. Ilustra cómo cada herramienta tiene su propia lógica de validación y procesamiento, y cómo todas las rutas eventualmente convergen en la generación de una respuesta formateada que combina resultados de herramientas con contexto recuperado mediante RAG.
 
