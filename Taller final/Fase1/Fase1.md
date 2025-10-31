@@ -44,6 +44,8 @@ Nuestra implementación asegura que el directorio de destino exista antes de int
 
 ![](https://github.com/claudia-pixel/IA_Generativa/blob/main/Taller%20final/Fase4/Contexto.png)
 
+
+
 ![](https://github.com/claudia-pixel/IA_Generativa/blob/main/Taller%20final/Fase4/N1.png)
 
 ### Diagrama de Flujo de Proceso
